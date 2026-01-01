@@ -1,4 +1,5 @@
 import { getRecentTransactions } from '@/app/lib/api'
+import { deleteTransaction } from '@/app/actions/logTransaction'
 import { formatMoney } from '@/utils/format/money'
 import Link from 'next/link'
 
@@ -43,6 +44,16 @@ export default async function TransactionsPage() {
                   {tx.type === 'expense' ? '-' : tx.type === 'income' ? '+' : ''}
                   {formatMoney(tx.amount)}
                 </div>
+                
+                <form action={deleteTransaction} className="ml-4">
+                  <input type="hidden" name="transaction_id" value={tx.id} />
+                  <button 
+                    type="submit"
+                    className="text-xs text-red-600 hover:text-red-800 border border-red-200 px-2 py-1 rounded hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
+                </form>
               </div>
             ))}
           </div>

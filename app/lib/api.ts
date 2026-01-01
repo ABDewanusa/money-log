@@ -70,7 +70,10 @@ export async function getAccountBalances() {
     throw new Error(`Failed to fetch account balances: ${error.message}`)
   }
 
-  return data as AccountBalance[]
+  // Deduplicate accounts by ID
+  const uniqueAccounts = Array.from(new Map((data || []).map(a => [a.id, a])).values())
+
+  return uniqueAccounts as AccountBalance[]
 }
 
 /**
@@ -88,7 +91,10 @@ export async function getBucketBalances() {
     throw new Error(`Failed to fetch bucket balances: ${error.message}`)
   }
 
-  return data as BucketBalance[]
+  // Deduplicate buckets by ID to prevent React key errors if the view returns duplicates
+  const uniqueBuckets = Array.from(new Map((data || []).map(b => [b.id, b])).values())
+
+  return uniqueBuckets as BucketBalance[]
 }
 
 /**
@@ -134,7 +140,10 @@ export async function getGroups() {
     throw new Error(`Failed to fetch groups: ${error.message}`)
   }
 
-  return data as Group[]
+  // Deduplicate groups by ID
+  const uniqueGroups = Array.from(new Map((data || []).map(g => [g.id, g])).values())
+
+  return uniqueGroups as Group[]
 }
 
 /**

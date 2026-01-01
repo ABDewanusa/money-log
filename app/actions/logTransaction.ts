@@ -10,7 +10,7 @@ export async function logTransaction(data: TransactionFormData) {
   // 1. Validate Input
   const result = transactionSchema.safeParse(data)
   if (!result.success) {
-    return { success: false, error: result.error.errors[0].message }
+    return { success: false, error: result.error.issues[0].message }
   }
 
   const { type, amount, date, description } = result.data
@@ -54,4 +54,24 @@ export async function logTransaction(data: TransactionFormData) {
   // 4. Revalidate
   revalidatePath('/dashboard')
   return { success: true }
+}
+
+export async function deleteTransaction(formData: FormData) {
+  const supabase = await createClient()
+  const transactionId = formData.get('transaction_id') as string
+
+  if (!transactionId) return
+
+  const { error } = await supabase
+    .from('transactions')
+    .delete()
+    .eq('id', transactionId)
+
+  if (error) {
+    console.error('Delete Transaction Error:', error)
+    return
+  }
+
+  revalidatePath('/dashboard')
+  revalidatePath('/transactions')
 }

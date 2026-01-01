@@ -46,7 +46,7 @@ create table buckets (
   user_id uuid references auth.users not null,
   group_id uuid references groups(id) on delete cascade not null,
   name text not null,
-  target_amount integer default 0, -- Optional goal in cents
+  target_amount bigint default 0, -- Optional goal in cents
   created_at timestamptz default now()
 );
 ```
@@ -63,7 +63,7 @@ create table transactions (
   user_id uuid references auth.users not null,
   created_at timestamptz default now(),
   date date not null default current_date,
-  amount integer not null check (amount > 0), -- Always positive, direction handled by columns
+  amount bigint not null check (amount > 0), -- Always positive, direction handled by columns
   description text,
   type transaction_type not null,
   

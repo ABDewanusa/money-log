@@ -6,6 +6,8 @@ import { BalanceCard } from '@/app/components/BalanceCard'
 import { GroupSection } from '@/app/components/GroupSection'
 import { AccountList } from '@/app/components/AccountList'
 
+import Link from 'next/link'
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -40,6 +42,28 @@ export default async function DashboardPage() {
           <div className="text-xl font-bold">{formatMoney(summary.total_cash)}</div>
         </div>
       </header>
+
+      {/* Action Bar */}
+      <div className="flex flex-wrap gap-3">
+        <Link 
+          href="/transactions/new" 
+          className="flex-1 sm:flex-none bg-black text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-800 transition-colors shadow-sm"
+        >
+          + Log Transaction
+        </Link>
+        <Link 
+          href="/transactions" 
+          className="flex-1 sm:flex-none bg-white text-gray-700 border px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          Transactions
+        </Link>
+        <Link 
+          href="/settings" 
+          className="flex-1 sm:flex-none bg-white text-gray-700 border px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-50 transition-colors shadow-sm"
+        >
+          Settings
+        </Link>
+      </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">

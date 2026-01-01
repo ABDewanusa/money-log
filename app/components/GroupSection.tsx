@@ -18,9 +18,9 @@ export function GroupSection({ group }: Props) {
         <p className="text-sm text-gray-400 italic pl-2">No buckets</p>
       ) : (
         <div className="space-y-2">
-          {group.buckets.map((bucket) => (
+          {group.buckets.map((bucket, index) => (
             <div
-              key={bucket.id}
+              key={`${bucket.id}-${index}`}
               className="flex justify-between items-center p-3 bg-white border rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <div className="flex flex-col">

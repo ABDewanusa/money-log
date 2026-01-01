@@ -1,5 +1,5 @@
 import { getAccounts, getBuckets, getGroups } from '@/app/lib/api'
-import { createAccount, archiveAccount, createBucket } from '@/app/actions/settings'
+import { createAccount, archiveAccount, unarchiveAccount, deleteAccount, createBucket, archiveBucket, unarchiveBucket, deleteBucket } from '@/app/actions/settings'
 import { formatMoney } from '@/utils/format/money'
 import Link from 'next/link'
 
@@ -71,17 +71,38 @@ export default async function SettingsPage() {
                   </div>
                   <span className="text-xs text-gray-500 capitalize">{account.type.replace('_', ' ')}</span>
                 </div>
-                {!account.is_archived && (
-                  <form action={archiveAccount}>
+                <div className="flex items-center gap-2">
+                  {!account.is_archived ? (
+                    <form action={archiveAccount}>
+                      <input type="hidden" name="account_id" value={account.id} />
+                      <button 
+                        type="submit"
+                        className="text-xs text-orange-600 hover:text-orange-800 border border-orange-200 px-2 py-1 rounded hover:bg-orange-50"
+                      >
+                        Archive
+                      </button>
+                    </form>
+                  ) : (
+                    <form action={unarchiveAccount}>
+                      <input type="hidden" name="account_id" value={account.id} />
+                      <button 
+                        type="submit"
+                        className="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50"
+                      >
+                        Unarchive
+                      </button>
+                    </form>
+                  )}
+                  <form action={deleteAccount}>
                     <input type="hidden" name="account_id" value={account.id} />
                     <button 
                       type="submit"
                       className="text-xs text-red-600 hover:text-red-800 border border-red-200 px-2 py-1 rounded hover:bg-red-50"
                     >
-                      Archive
+                      Delete
                     </button>
                   </form>
-                )}
+                </div>
               </div>
             ))}
           </div>
@@ -147,16 +168,52 @@ export default async function SettingsPage() {
                   {groupBuckets.map(bucket => (
                     <div key={bucket.id} className="p-4 flex items-center justify-between">
                       <div>
-                        <span className="font-medium text-gray-900">{bucket.name}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`font-medium ${bucket.is_archived ? 'text-gray-400 line-through' : 'text-gray-900'}`}>
+                            {bucket.name}
+                          </span>
+                          {bucket.is_archived && (
+                            <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded">Archived</span>
+                          )}
+                        </div>
                         {bucket.target_amount > 0 && (
                           <div className="text-xs text-gray-500">
                             Target: {formatMoney(bucket.target_amount)}
                           </div>
                         )}
                       </div>
-                      {/* Placeholder for future edit/move actions */}
-                      <div className="text-xs text-gray-400">
-                        {/* No archive for buckets requested, but could be added easily */}
+                      {/* Actions */}
+                      <div className="flex items-center gap-2">
+                        {!bucket.is_archived ? (
+                          <form action={archiveBucket}>
+                            <input type="hidden" name="bucket_id" value={bucket.id} />
+                            <button 
+                              type="submit"
+                              className="text-xs text-orange-600 hover:text-orange-800 border border-orange-200 px-2 py-1 rounded hover:bg-orange-50"
+                            >
+                              Archive
+                            </button>
+                          </form>
+                        ) : (
+                          <form action={unarchiveBucket}>
+                            <input type="hidden" name="bucket_id" value={bucket.id} />
+                            <button 
+                              type="submit"
+                              className="text-xs text-blue-600 hover:text-blue-800 border border-blue-200 px-2 py-1 rounded hover:bg-blue-50"
+                            >
+                              Unarchive
+                            </button>
+                          </form>
+                        )}
+                        <form action={deleteBucket}>
+                          <input type="hidden" name="bucket_id" value={bucket.id} />
+                          <button 
+                            type="submit"
+                            className="text-xs text-red-600 hover:text-red-800 border border-red-200 px-2 py-1 rounded hover:bg-red-50"
+                          >
+                            Delete
+                          </button>
+                        </form>
                       </div>
                     </div>
                   ))}
