@@ -27,6 +27,34 @@ export type Group = {
   sort_order: number
 }
 
+export type Transaction = {
+  id: string
+  created_at: string
+  date: string
+  amount: number
+  description: string | null
+  type: 'income' | 'expense' | 'transfer' | 'bucket_move'
+  from_account_id: string | null
+  to_account_id: string | null
+  from_bucket_id: string | null
+  to_bucket_id: string | null
+}
+
+export type Account = {
+  id: string
+  name: string
+  type: string
+  is_archived: boolean
+}
+
+export type Bucket = {
+  id: string
+  name: string
+  group_id: string
+  target_amount: number
+  is_archived: boolean
+}
+
 /**
  * Fetch all account balances for the current user.
  */
@@ -107,4 +135,44 @@ export async function getGroups() {
   }
 
   return data as Group[]
+}
+
+/**
+ * Fetch recent transactions.
+ */
+export async function getRecentTransactions(limit = 30) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .order('date', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(limit)
+
+  if (error) {
+    throw new Error(`Failed to fetch transactions: ${error.message}`)
+  }
+
+  return data as Transaction[]
+}
+
+/**
+ * Fetch all accounts (raw).
+ */
+export async function getAccounts() {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('accounts').select('*').order('name')
+  if (error) throw new Error(`Failed to fetch accounts: ${error.message}`)
+  return data as Account[]
+}
+
+/**
+ * Fetch all buckets (raw).
+ */
+export async function getBuckets() {
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('buckets').select('*').order('name')
+  if (error) throw new Error(`Failed to fetch buckets: ${error.message}`)
+  return data as Bucket[]
 }

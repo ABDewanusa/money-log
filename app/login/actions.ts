@@ -8,7 +8,6 @@ import { seedUserData } from '@/app/actions/seedUserData'
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
-  // Type-safe extraction could be done with Zod, but keeping it minimal as requested
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
@@ -18,17 +17,13 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
-    redirect('/login?error=' + encodeURIComponent(error.message))
+    return redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
-  // Seed data on login
   try {
     await seedUserData()
   } catch (e) {
-    // If seeding fails, we should probably log it but maybe not block login entirely?
-    // User constraints say "Fail loudly if seed fails".
-    // So we will return the error.
-    redirect('/login?error=' + encodeURIComponent('Failed to seed initial data: ' + (e instanceof Error ? e.message : 'Unknown error')))
+    return redirect('/login?error=' + encodeURIComponent('Failed to seed initial data: ' + (e instanceof Error ? e.message : 'Unknown error')))
   }
 
   revalidatePath('/', 'layout')
@@ -41,20 +36,23 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
   })
 
   if (error) {
-    redirect('/login?error=' + encodeURIComponent(error.message))
+    return redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
-  // Seed data on signup
+  if (!data.session) {
+    return redirect('/login?message=' + encodeURIComponent('Check your email to confirm your account.'))
+  }
+
   try {
     await seedUserData()
   } catch (e) {
-    redirect('/login?error=' + encodeURIComponent('Failed to seed initial data: ' + (e instanceof Error ? e.message : 'Unknown error')))
+    return redirect('/login?error=' + encodeURIComponent('Failed to seed initial data: ' + (e instanceof Error ? e.message : 'Unknown error')))
   }
 
   revalidatePath('/', 'layout')

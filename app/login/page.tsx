@@ -3,10 +3,37 @@
 import { login, signup } from './actions'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
+import { useFormStatus } from 'react-dom'
+
+function SubmitButtons() {
+  const { pending } = useFormStatus()
+  
+  return (
+    <div className="flex flex-col gap-2 mt-4">
+      <button 
+        type="submit" 
+        formAction={login} 
+        disabled={pending}
+        className="bg-black text-white p-2 rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+      >
+        {pending ? 'Processing...' : 'Log In'}
+      </button>
+      <button 
+        type="submit" 
+        formAction={signup} 
+        disabled={pending}
+        className="bg-white text-black border p-2 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+      >
+        Sign Up
+      </button>
+    </div>
+  )
+}
 
 function LoginForm() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
+  const message = searchParams.get('message')
 
   return (
     <>
@@ -18,6 +45,12 @@ function LoginForm() {
       {error && (
         <div className="bg-red-50 text-red-600 p-3 rounded text-sm w-full max-w-sm text-center">
           {error}
+        </div>
+      )}
+      
+      {message && (
+        <div className="bg-green-50 text-green-600 p-3 rounded text-sm w-full max-w-sm text-center">
+          {message}
         </div>
       )}
 
@@ -46,14 +79,7 @@ function LoginForm() {
           />
         </div>
 
-        <div className="flex flex-col gap-2 mt-4">
-          <button formAction={login} className="bg-black text-white p-2 rounded hover:bg-gray-800">
-            Log In
-          </button>
-          <button formAction={signup} className="bg-white text-black border p-2 rounded hover:bg-gray-50">
-            Sign Up
-          </button>
-        </div>
+        <SubmitButtons />
       </form>
     </>
   )
