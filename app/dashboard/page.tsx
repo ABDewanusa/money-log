@@ -1,5 +1,5 @@
-import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
+import { createClient } from '@/utils/supabase/server'
 import { getAccountBalances, getBucketBalances, getDashboardSummary, getGroups } from '@/app/lib/api'
 import { formatMoney } from '@/utils/format/money'
 import { BalanceCard } from '@/app/components/BalanceCard'

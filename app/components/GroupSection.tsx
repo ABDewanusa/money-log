@@ -1,5 +1,5 @@
 import { formatMoney } from '@/utils/format/money'
-import { isSystemBucket } from '@/app/actions/seedUserData'
+import { isSystemBucket } from '@/utils/buckets'
 import { BucketBalance, Group } from '@/app/lib/api'
 
 type Props = {
