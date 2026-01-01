@@ -2,13 +2,14 @@
 
 import { login, signup } from './actions'
 import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams()
   const error = searchParams.get('error')
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-6">
+    <>
       <div className="text-center space-y-2">
         <h1 className="text-2xl font-bold">Money Log</h1>
         <p className="text-gray-500">Sign in to track your finances.</p>
@@ -54,6 +55,16 @@ export default function LoginPage() {
           </button>
         </div>
       </form>
+    </>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[50vh] space-y-6">
+      <Suspense fallback={<div className="text-center">Loading...</div>}>
+        <LoginForm />
+      </Suspense>
     </div>
   )
 }
