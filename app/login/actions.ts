@@ -18,7 +18,7 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
   // Seed data on login
@@ -28,7 +28,7 @@ export async function login(formData: FormData) {
     // If seeding fails, we should probably log it but maybe not block login entirely?
     // User constraints say "Fail loudly if seed fails".
     // So we will return the error.
-    return { error: 'Failed to seed initial data: ' + (e instanceof Error ? e.message : 'Unknown error') }
+    redirect('/login?error=' + encodeURIComponent('Failed to seed initial data: ' + (e instanceof Error ? e.message : 'Unknown error')))
   }
 
   revalidatePath('/', 'layout')
@@ -47,14 +47,14 @@ export async function signup(formData: FormData) {
   })
 
   if (error) {
-    return { error: error.message }
+    redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
   // Seed data on signup
   try {
     await seedUserData()
   } catch (e) {
-    return { error: 'Failed to seed initial data: ' + (e instanceof Error ? e.message : 'Unknown error') }
+    redirect('/login?error=' + encodeURIComponent('Failed to seed initial data: ' + (e instanceof Error ? e.message : 'Unknown error')))
   }
 
   revalidatePath('/', 'layout')
