@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { getAccountBalances, getBucketBalances, getDashboardSummary, getGroups } from '@/app/lib/api'
+import { getAccountBalances, getBucketBalances, getGroups } from '@/app/lib/api'
 import { formatMoney } from '@/utils/format/money'
 import { BalanceCard } from '@/app/components/BalanceCard'
 import { GroupSection } from '@/app/components/GroupSection'
@@ -17,12 +17,19 @@ export default async function DashboardPage() {
   }
 
   // 1. Fetch all data in parallel
-  const [groups, bucketBalances, accountBalances, summary] = await Promise.all([
+  const [groups, bucketBalances, accountBalances] = await Promise.all([
     getGroups(),
     getBucketBalances(),
-    getAccountBalances(),
-    getDashboardSummary()
+    getAccountBalances()
   ])
+
+  // Calculate summary from balances
+  const total_cash = accountBalances.reduce((sum, acc) => sum + acc.balance, 0)
+  const total_budgeted = bucketBalances.reduce((sum, bucket) => sum + bucket.balance, 0)
+  const summary = {
+    total_cash,
+    total_budgeted
+  }
 
   // 2. Combine groups with their buckets
   const groupsWithBuckets = groups.map(group => ({

@@ -64,10 +64,33 @@ export type Bucket = {
  */
 export async function getAccountBalances() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   
+  if (!user) {
+    return []
+  }
+
+  // 1. Get IDs of accounts that belong to this user
+  const { data: userAccounts, error: accountError } = await supabase
+    .from('accounts')
+    .select('id')
+    .eq('user_id', user.id)
+
+  if (accountError) {
+    throw new Error(`Failed to fetch user accounts: ${accountError.message}`)
+  }
+
+  const accountIds = userAccounts.map(a => a.id)
+
+  if (accountIds.length === 0) {
+    return []
+  }
+  
+  // 2. Filter the view by these IDs
   const { data, error } = await supabase
     .from('v_account_balances')
     .select('*')
+    .in('id', accountIds)
     .order('sort_order')
     .order('name')
 
@@ -86,10 +109,33 @@ export async function getAccountBalances() {
  */
 export async function getBucketBalances() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
   
+  if (!user) {
+    return []
+  }
+
+  // 1. Get IDs of buckets that belong to this user
+  const { data: userBuckets, error: bucketError } = await supabase
+    .from('buckets')
+    .select('id')
+    .eq('user_id', user.id)
+
+  if (bucketError) {
+    throw new Error(`Failed to fetch user buckets: ${bucketError.message}`)
+  }
+
+  const bucketIds = userBuckets.map(b => b.id)
+
+  if (bucketIds.length === 0) {
+    return []
+  }
+  
+  // 2. Filter the view by these IDs
   const { data, error } = await supabase
     .from('v_bucket_balances')
     .select('*')
+    .in('id', bucketIds)
     .order('sort_order')
     .order('name')
 
@@ -104,42 +150,18 @@ export async function getBucketBalances() {
 }
 
 /**
- * Fetch the high-level dashboard summary (totals).
- */
-export async function getDashboardSummary() {
-  const supabase = await createClient()
-  
-  const { data, error } = await supabase
-    .from('v_dashboard_summary')
-    .select('*')
-    .single()
-
-  if (error) {
-    // If the view returns no rows (e.g. no data at all), it might be an error or just null
-    // But typically an aggregate view returns one row with nulls if empty.
-    // If it's a real error (like 404/500), throw.
-    if (error.code === 'PGRST116') { // JSON object requested, multiple (or no) rows returned
-       return { total_cash: 0, total_budgeted: 0, unallocated_error_check: 0 }
-    }
-    throw new Error(`Failed to fetch dashboard summary: ${error.message}`)
-  }
-
-  return {
-    total_cash: data.total_cash ?? 0,
-    total_budgeted: data.total_budgeted ?? 0,
-    unallocated_error_check: data.unallocated_error_check ?? 0
-  } as DashboardSummary
-}
-
-/**
  * Fetch groups to organize buckets.
  */
 export async function getGroups() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
   
   const { data, error } = await supabase
     .from('groups')
     .select('*')
+    .eq('user_id', user.id)
     .order('sort_order')
 
   if (error) {
@@ -157,10 +179,14 @@ export async function getGroups() {
  */
 export async function getRecentTransactions(limit = 30) {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
 
   const { data, error } = await supabase
     .from('transactions')
     .select('*')
+    .eq('user_id', user.id)
     .order('date', { ascending: false })
     .order('created_at', { ascending: false })
     .limit(limit)
@@ -177,7 +203,11 @@ export async function getRecentTransactions(limit = 30) {
  */
 export async function getAccounts() {
   const supabase = await createClient()
-  const { data, error } = await supabase.from('accounts').select('*').order('sort_order').order('name')
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data, error } = await supabase.from('accounts').select('*').eq('user_id', user.id).order('sort_order').order('name')
   if (error) throw new Error(`Failed to fetch accounts: ${error.message}`)
   return data as Account[]
 }
@@ -187,7 +217,11 @@ export async function getAccounts() {
  */
 export async function getBuckets() {
   const supabase = await createClient()
-  const { data, error } = await supabase.from('buckets').select('*').order('sort_order').order('name')
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) return []
+
+  const { data, error } = await supabase.from('buckets').select('*').eq('user_id', user.id).order('sort_order').order('name')
   if (error) throw new Error(`Failed to fetch buckets: ${error.message}`)
   return data as Bucket[]
 }
