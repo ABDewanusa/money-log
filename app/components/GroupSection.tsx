@@ -7,6 +7,8 @@ type Props = {
 }
 
 export function GroupSection({ group }: Props) {
+  const targetLabel = group.title === 'Savings' ? 'Goal' : 'Budget'
+
   return (
     <div className="space-y-3">
       <div className="flex justify-between items-end border-b pb-1 border-gray-200 dark:border-slate-700">
