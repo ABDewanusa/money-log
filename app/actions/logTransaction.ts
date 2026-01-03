@@ -7,6 +7,11 @@ import { revalidatePath } from 'next/cache'
 export async function logTransaction(data: TransactionFormData) {
   const supabase = await createClient()
 
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) {
+    return { success: false, error: 'User not authenticated' }
+  }
+
   // 1. Validate Input
   const result = transactionSchema.safeParse(data)
   if (!result.success) {
@@ -18,6 +23,7 @@ export async function logTransaction(data: TransactionFormData) {
 
   // 2. Prepare payload based on type
   let payload: any = {
+    user_id: user.id,
     type,
     amount: amountInCents,
     date,
