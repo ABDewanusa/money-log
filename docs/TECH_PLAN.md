@@ -17,11 +17,14 @@ All routes protected by middleware except public landing.
   /transactions       # Private: List view
     /new              # Private: Dedicated "Add Transaction" page
   /settings           # Private: CRUD for Accounts & Buckets (Create/Archive/Delete)
+  /components
+    BottomNavigation.tsx # Persistent footer nav
   layout.tsx          # Global Shell (Nav, Auth check)
   page.tsx            # Redirects to /dashboard or /login
 ```
 
 **Key Components:**
+*   `BottomNavigation`: Fixed footer with tabs (Dashboard, Transactions, Settings).
 *   `TransactionForm`: The most critical component. Optimized for mobile touch.
 *   `BalanceCard`: Display for Account/Bucket balances.
 *   `GroupSection`: Collapsible/Organized view for Budget Groups.

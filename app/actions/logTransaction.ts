@@ -59,6 +59,7 @@ export async function logTransaction(data: TransactionFormData) {
 
   // 4. Revalidate
   revalidatePath('/dashboard')
+  revalidatePath('/transactions')
   return { success: true }
 }
 

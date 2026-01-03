@@ -34,10 +34,10 @@ export default async function NewTransactionPage() {
   return (
     <div className="space-y-6 pb-20">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">New Transaction</h1>
+        <h1 className="text-2xl font-bold dark:text-white">New Transaction</h1>
         <Link 
-          href="/dashboard" 
-          className="text-sm text-gray-500 hover:text-gray-900"
+          href="/transactions" 
+          className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
         >
           &larr; Cancel
         </Link>

@@ -38,42 +38,24 @@ export default async function DashboardPage() {
   const visibleGroups = groupsWithBuckets.filter(g => g.title !== 'System')
 
   return (
-    <div className="space-y-8 pb-20">
-      <header className="flex justify-between items-center pb-4 border-b">
-        <div>
-          <h1 className="text-2xl font-bold">Dashboard</h1>
-          <p className="text-sm text-gray-500">{user.email}</p>
-        </div>
-        <div className="text-right">
-          <div className="text-sm text-gray-500">Total Cash</div>
-          <div className="text-xl font-bold">{formatMoney(summary.total_cash)}</div>
-        </div>
-      </header>
-
+    <div className="space-y-8">
       {/* Action Bar */}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-col sm:flex-row gap-3">
         <Link 
           href="/transactions/new" 
-          className="flex-1 sm:flex-none bg-black text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-800 transition-colors shadow-sm"
+          className="w-full sm:w-auto bg-black text-white px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-800 transition-colors shadow-sm dark:bg-white dark:text-black dark:hover:bg-gray-200"
         >
           + Log Transaction
-        </Link>
-        <Link 
-          href="/transactions" 
-          className="flex-1 sm:flex-none bg-white text-gray-700 border px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          Transactions
-        </Link>
-        <Link 
-          href="/settings" 
-          className="flex-1 sm:flex-none bg-white text-gray-700 border px-4 py-3 rounded-lg font-medium text-center hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          Settings
         </Link>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <BalanceCard
+          title="Total Cash"
+          amount={summary.total_cash}
+        />
+
         <BalanceCard 
           title="To Be Budgeted" 
           amount={tbbAmount}
@@ -90,7 +72,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Accounts Column - Mobile First: Stacks on top */}
         <div className="space-y-4">
-          <h2 className="text-xl font-semibold flex justify-between items-center">
+          <h2 className="text-xl font-semibold flex justify-between items-center dark:text-white">
             Accounts
             <span className="text-sm font-normal text-gray-500">
               {accountBalances.length} accounts
