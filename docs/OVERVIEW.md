@@ -8,7 +8,7 @@ It's about planning, budgeting, and expense tracking using the Envelope Budgetin
 *   **Bottom Navigation:** Persistent tab bar for seamless switching between Dashboard, Transactions, and Settings.
 *   **Dashboard:** High-level view of Total Cash vs Total Budgeted.
 *   **Action Bar:** Quick access to log transactions.
-*   **Settings:** Manage Accounts and Buckets (Create, Archive, Unarchive, Delete).
+*   **Settings:** Manage Accounts and Buckets (Create, Update Targets, Archive, Unarchive, Delete).
 *   **Mobile-First Design:** Optimized for logging transactions on the go.
 
 

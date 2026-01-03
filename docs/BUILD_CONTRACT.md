@@ -32,7 +32,7 @@ The MVP **MUST NOT** include:
 
 ## 4. Allowed Simplifications
 To maximize speed, the following shortcuts are **PERMITTED**:
-*   **Hardcoded Groups:** Default groups (Needs, Wants, Savings) can be hardcoded or seeded if dynamic creation is too complex initially.
+*   **Hardcoded Groups:** Default groups (Needs, Wants, Savings) are seeded in the database. Dynamic creation of new groups is not required for MVP.
 *   **Minimal Error Handling:** UI can simply alert "Error" on failure; detailed recovery flows are not required.
 *   **Basic Validation:** Form validation can be minimal (e.g., just "required" fields).
 *   **No "Undo":** Deleting a transaction is permanent. No "Trash" or "Undo" functionality.

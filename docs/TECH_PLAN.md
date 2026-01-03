@@ -6,6 +6,7 @@
 *   **Styling:** Tailwind CSS
 *   **Deployment:** Vercel (Zero-config)
 *   **Pattern:** Server Components for read, Server Actions for write. No API routes needed.
+*   **Proxy:** Uses `proxy.ts` (formerly middleware) for auth redirects.
 
 ## 2. Frontend Structure (App Router)
 All routes protected by middleware except public landing.
@@ -65,9 +66,10 @@ Instead of calculating balances in JS, we use Postgres Views for performance and
 
 **Read (Page Load):**
 1.  User requests `/dashboard`.
-2.  **Server Component** calls `supabase.from('v_dashboard_summary').select('*')` (and fetches lists of accounts/buckets).
-3.  HTML rendered on server with latest data.
-4.  Sent to client (Zero client-side fetch waterfall).
+2.  **Server Component** fetches `getGroups`, `getBucketBalances`, `getAccountBalances` in parallel.
+3.  Calculates summary totals (Cash vs Budgeted) in the application layer.
+4.  HTML rendered on server with latest data.
+5.  Sent to client (Zero client-side fetch waterfall).
 
 **Write (User Action):**
 1.  User submits `<form action={logTransaction}>`.

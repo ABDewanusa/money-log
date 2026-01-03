@@ -47,7 +47,7 @@ create table buckets (
   user_id uuid references auth.users not null,
   group_id uuid references groups(id) on delete cascade not null,
   name text not null,
-  target_amount bigint default 0, -- Optional goal in cents
+  target_amount bigint default 0, -- Optional target/goal in cents
   sort_order integer default 0,
   is_archived boolean default false,
   created_at timestamptz default now()

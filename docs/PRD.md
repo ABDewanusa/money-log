@@ -24,8 +24,8 @@ Personal finance management is often fragmented between overly complex automated
 ### IN Scope
 -   **Authentication:** Email/Password (Supabase Auth).
 -   **Dashboard:** High-level summary of Groups (Needs, Wants, Future) and Account Balances.
--   **Account Management:** Create, Edit, Delete (Soft) Accounts.
--   **Bucket Management:** Create, Edit, Delete (Soft) Buckets within Groups.
+-   **Account Management:** Create, Archive, Unarchive, Delete (Soft) Accounts.
+-   **Bucket Management:** Create, Update Targets, Archive, Unarchive, Delete (Soft) Buckets within Groups.
 -   **Transaction Management:**
     -   Log Income (To Account, To Bucket).
     -   Log Expense (From Account, From Bucket).

@@ -37,6 +37,11 @@ This document outlines the styling standards for the Money Log application, ensu
     -   **Responsive Layout**:
         -   **Mobile**: Stacked vertically (`flex-col`), aligned to the right or end.
         -   **Desktop**: Inline (`flex-row`), aligned with text.
+-   **Inline Edit Buttons** (Save/Cancel):
+    -   **Context**: Used for quick edits within a list item (e.g., editing bucket target).
+    -   **Style**: Small text-only or minimal buttons (`text-xs`).
+    -   **Save**: `text-green-600 hover:text-green-700 dark:text-green-400`
+    -   **Cancel**: `text-red-600 hover:text-red-700 dark:text-red-400`
 
 ### Navigation
 -   **Bottom Navigation**:

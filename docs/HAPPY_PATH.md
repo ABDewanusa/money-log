@@ -59,13 +59,13 @@
     *   They add to "Vacation Fund" ($200).
     *   *Result:* Ready for the next 30 days.
 
-## 5. Mental Model: Sinking Funds & Goals
+## 5. Mental Model: Sinking Funds & Targets
 *How it feels different from a spreadsheet.*
 
 *   **The Problem:** In a spreadsheet, $10,000 in a savings account looks like a blob of money. Users often "borrow" from it mentally for a vacation, then forget it was meant for a House Downpayment.
 *   **The Money Log Way:**
     *   The user sees "Savings Account: $10,000".
-    *   BUT, below that, they see:
+    *   BUT, below that, they see buckets (labeled "Goal" for Savings, "Budget" for others):
         *   bucket: "House Downpayment: $8,000"
         *   bucket: "New Laptop: $1,500"
         *   bucket: "Car Repair: $500"
