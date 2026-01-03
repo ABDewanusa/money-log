@@ -196,7 +196,7 @@ export async function deleteBucket(formData: FormData) {
     .from('buckets')
     .delete()
     .eq('id', bucketId)
-
+  
   if (error) {
     console.error('Delete Bucket Error:', error)
     return
@@ -257,6 +257,29 @@ export async function updateBucketGroup(formData: FormData) {
 
   if (error) {
     console.error('Update Bucket Group Error:', error)
+    return
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
+export async function updateBucketTarget(formData: FormData) {
+  const supabase = await createClient()
+  const bucketId = formData.get('bucket_id') as string
+  const targetStr = formData.get('target_amount') as string
+
+  if (!bucketId) return
+
+  const target_amount = targetStr ? Math.round(parseFloat(targetStr) * 100) : 0
+
+  const { error } = await supabase
+    .from('buckets')
+    .update({ target_amount })
+    .eq('id', bucketId)
+
+  if (error) {
+    console.error('Update Bucket Target Error:', error)
     return
   }
 

@@ -18,7 +18,7 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { updateBucketOrder, archiveBucket, unarchiveBucket, deleteBucket } from '@/app/actions/settings'
+import { updateBucketOrder, archiveBucket, unarchiveBucket, deleteBucket, updateBucketTarget } from '@/app/actions/settings'
 import { formatMoney } from '@/utils/format/money'
 
 type Bucket = {
@@ -39,6 +39,8 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
     isDragging
   } = useSortable({ id: bucket.id })
 
+  const [isEditing, setIsEditing] = useState(false)
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -47,7 +49,7 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="p-3 sm:p-4 flex flex-row items-center justify-between bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 last:border-0 gap-3 sm:gap-4">
+    <div ref={setNodeRef} style={style} className="group p-3 sm:p-4 flex flex-row items-center justify-between bg-white dark:bg-slate-800 border-b border-gray-200 dark:border-slate-700 last:border-0 gap-3 sm:gap-4">
       <div className="flex items-center gap-3 flex-1 min-w-0">
         {/* Drag Handle */}
         <button {...attributes} {...listeners} className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 cursor-grab active:cursor-grabbing px-1 flex-shrink-0">
@@ -63,9 +65,43 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
               <span className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded flex-shrink-0">Archived</span>
             )}
           </div>
-          {bucket.target_amount > 0 && (
-            <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
-              Target: {formatMoney(bucket.target_amount)}
+          
+          {isEditing ? (
+            <form 
+              action={async (formData) => {
+                await updateBucketTarget(formData)
+                setIsEditing(false)
+              }}
+              className="mt-1 flex items-center gap-2"
+            >
+              <input type="hidden" name="bucket_id" value={bucket.id} />
+              <input 
+                name="target_amount" 
+                type="number" 
+                step="0.01" 
+                defaultValue={bucket.target_amount / 100}
+                className="w-24 text-xs p-1 border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setIsEditing(false)
+                }}
+              />
+              <button type="submit" className="text-xs text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300">Save</button>
+              <button type="button" onClick={() => setIsEditing(false)} className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">Cancel</button>
+            </form>
+          ) : (
+            <div className="flex items-center gap-2 mt-0.5 h-5">
+               <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
+                 Target: {bucket.target_amount > 0 ? formatMoney(bucket.target_amount) : '$0.00'}
+               </div>
+               {!bucket.is_archived && (
+                 <button 
+                   onClick={() => setIsEditing(true)}
+                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                 >
+                   Edit
+                 </button>
+               )}
             </div>
           )}
         </div>
