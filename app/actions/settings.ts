@@ -51,6 +51,49 @@ export async function archiveAccount(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
+export async function updateAccountType(formData: FormData) {
+  const supabase = await createClient()
+  const accountId = formData.get('account_id') as string
+  const type = formData.get('type') as string
+
+  if (!accountId || !type) return
+
+  const { error } = await supabase
+    .from('accounts')
+    .update({ type })
+    .eq('id', accountId)
+
+  if (error) {
+    console.error('Update Account Type Error:', error)
+    return
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
+export async function updateAccountOrder(items: { id: string; sort_order: number }[]) {
+  const supabase = await createClient()
+  
+  for (const item of items) {
+    await supabase.from('accounts').update({ sort_order: item.sort_order }).eq('id', item.id)
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
+export async function updateBucketOrder(items: { id: string; sort_order: number }[]) {
+  const supabase = await createClient()
+
+  for (const item of items) {
+    await supabase.from('buckets').update({ sort_order: item.sort_order }).eq('id', item.id)
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
 export async function unarchiveAccount(formData: FormData) {
   const supabase = await createClient()
   const accountId = formData.get('account_id') as string
@@ -97,6 +140,10 @@ export async function archiveBucket(formData: FormData) {
 
   if (!bucketId) return
 
+  // Check if TBB
+  const { data: bucket } = await supabase.from('buckets').select('name').eq('id', bucketId).single()
+  if (bucket?.name === 'To Be Budgeted') return
+
   const { error } = await supabase
     .from('buckets')
     .update({ is_archived: true })
@@ -117,6 +164,10 @@ export async function unarchiveBucket(formData: FormData) {
 
   if (!bucketId) return
 
+  // Check if TBB (though unarchiving TBB shouldn't happen if it can't be archived, adding for safety)
+  const { data: bucket } = await supabase.from('buckets').select('name').eq('id', bucketId).single()
+  if (bucket?.name === 'To Be Budgeted') return
+
   const { error } = await supabase
     .from('buckets')
     .update({ is_archived: false })
@@ -136,6 +187,10 @@ export async function deleteBucket(formData: FormData) {
   const bucketId = formData.get('bucket_id') as string
 
   if (!bucketId) return
+
+  // Check if TBB
+  const { data: bucket } = await supabase.from('buckets').select('name').eq('id', bucketId).single()
+  if (bucket?.name === 'To Be Budgeted') return
 
   const { error } = await supabase
     .from('buckets')
@@ -160,6 +215,17 @@ export async function createBucket(formData: FormData) {
   const target_amount = target_str ? Math.round(parseFloat(target_str) * 100) : 0
 
   if (!name || !group_id) return
+
+  // Prevent creating "To Be Budgeted" manually
+  if (name.trim().toLowerCase() === 'to be budgeted') {
+    return
+  }
+
+  // Prevent creating buckets in "System" group
+  const { data: group } = await supabase.from('groups').select('title').eq('id', group_id).single()
+  if (group?.title === 'System') {
+    return
+  }
 
   const { error } = await supabase.from('buckets').insert({ 
     name, 

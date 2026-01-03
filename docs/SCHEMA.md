@@ -19,6 +19,7 @@ create table accounts (
   user_id uuid references auth.users not null,
   name text not null,
   type text not null check (type in ('checking', 'savings', 'credit_card', 'cash')),
+  sort_order integer default 0,
   is_archived boolean default false,
   created_at timestamptz default now()
 );
@@ -47,6 +48,8 @@ create table buckets (
   group_id uuid references groups(id) on delete cascade not null,
   name text not null,
   target_amount bigint default 0, -- Optional goal in cents
+  sort_order integer default 0,
+  is_archived boolean default false,
   created_at timestamptz default now()
 );
 ```
@@ -64,6 +67,7 @@ create table transactions (
   created_at timestamptz default now(),
   date date not null default current_date,
   amount bigint not null check (amount > 0), -- Always positive, direction handled by columns
+  payee text,
   description text,
   type transaction_type not null,
   
@@ -113,11 +117,12 @@ select
   a.id,
   a.name,
   a.type,
+  a.sort_order,
   coalesce(sum(case when t.to_account_id = a.id then t.amount else 0 end), 0) -
   coalesce(sum(case when t.from_account_id = a.id then t.amount else 0 end), 0) as balance
 from accounts a
 left join transactions t on t.to_account_id = a.id or t.from_account_id = a.id
-group by a.id, a.name, a.type;
+group by a.id, a.name, a.type, a.sort_order;
 ```
 
 ### `v_bucket_balances`
@@ -130,11 +135,12 @@ select
   b.name,
   b.group_id,
   b.target_amount,
+  b.sort_order,
   coalesce(sum(case when t.to_bucket_id = b.id then t.amount else 0 end), 0) -
   coalesce(sum(case when t.from_bucket_id = b.id then t.amount else 0 end), 0) as balance
 from buckets b
 left join transactions t on t.to_bucket_id = b.id or t.from_bucket_id = b.id
-group by b.id, b.name, b.group_id, b.target_amount;
+group by b.id, b.name, b.group_id, b.target_amount, b.sort_order;
 ```
 
 ### `v_dashboard_summary`

@@ -30,6 +30,13 @@ export default async function DashboardPage() {
     buckets: bucketBalances.filter(b => b.group_id === group.id)
   }))
 
+  // 3. Identify "To Be Budgeted" bucket (System)
+  const tbbBucket = bucketBalances.find(b => b.name === 'To Be Budgeted')
+  const tbbAmount = tbbBucket ? tbbBucket.balance : 0
+
+  // 4. Filter out System group from main list
+  const visibleGroups = groupsWithBuckets.filter(g => g.title !== 'System')
+
   return (
     <div className="space-y-8 pb-20">
       <header className="flex justify-between items-center pb-4 border-b">
@@ -68,15 +75,15 @@ export default async function DashboardPage() {
       {/* Summary Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         <BalanceCard 
-          title="Total Budgeted" 
-          amount={summary.total_budgeted} 
+          title="To Be Budgeted" 
+          amount={tbbAmount}
+          variant={tbbAmount < 0 ? 'danger' : 'success'}
         />
         
         <BalanceCard 
-          title="Unallocated Check" 
-          amount={summary.unallocated_error_check}
-          variant={summary.unallocated_error_check !== 0 ? 'danger' : 'success'}
-          subtitle={summary.unallocated_error_check !== 0 ? 'Should be $0.00!' : undefined}
+          title="Total Budgeted" 
+          amount={summary.total_budgeted - tbbAmount} 
+          subtitle="Assigned to envelopes"
         />
       </div>
 
@@ -97,16 +104,17 @@ export default async function DashboardPage() {
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Budget</h2>
           
-          {groupsWithBuckets.length === 0 ? (
-            <div className="p-4 bg-yellow-50 text-yellow-800 rounded">
-              No budget groups found.
+          {visibleGroups.length === 0 ? (
+            <div className="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">
+              No budget groups yet.
             </div>
           ) : (
-            <div className="space-y-6">
-              {groupsWithBuckets.map((group) => (
-                <GroupSection key={group.id} group={group} />
-              ))}
-            </div>
+            visibleGroups.map(group => (
+              <GroupSection 
+                key={group.id} 
+                group={group} 
+              />
+            ))
           )}
         </div>
       </div>

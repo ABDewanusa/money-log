@@ -24,10 +24,10 @@
 1.  **The Trigger:** The user buys a coffee for $4.50 using their Debit Card.
 2.  **Immediate Action:** While waiting for the drink, they open the app.
 3.  **The Input:**
-    *   Tap "+" (Add Transaction).
+    *   Tap "**+ Log Transaction**" on the Dashboard Action Bar.
     *   Type "4.50".
     *   Select "Expense".
-    *   Account defaults to "Checking" (last used).
+    *   Account defaults to "Checking" (last used or first active).
     *   Bucket? They tap "Dining Out" (or "Wants").
     *   Tap "Save".
 4.  **Feedback:** The app immediately shows "Dining Out: $45.50 remaining". The user closes the app.

@@ -14,17 +14,18 @@ All routes protected by middleware except public landing.
 /app
   /login              # Public: Auth entry point
   /dashboard          # Private: Main view (Groups/Buckets/Accounts summary)
-  /transactions       # Private: List view + "Add New" Modal/Page
-    /new              # (Optional) Dedicated page for mobile speed
-  /settings           # Private: CRUD for Accounts & Buckets
+  /transactions       # Private: List view
+    /new              # Private: Dedicated "Add Transaction" page
+  /settings           # Private: CRUD for Accounts & Buckets (Create/Archive/Delete)
   layout.tsx          # Global Shell (Nav, Auth check)
   page.tsx            # Redirects to /dashboard or /login
 ```
 
 **Key Components:**
-*   `TransactionForm`: The most critical component. Needs to be optimized for mobile touch.
+*   `TransactionForm`: The most critical component. Optimized for mobile touch.
 *   `BalanceCard`: Display for Account/Bucket balances.
-*   `GroupAccordion`: Collapsible view for Budget Groups.
+*   `GroupSection`: Collapsible/Organized view for Budget Groups.
+*   `AccountList`: List of accounts with balances.
 
 ## 3. Backend Structure (Supabase)
 
@@ -35,13 +36,14 @@ All routes protected by middleware except public landing.
 *   **`groups`**: (High level budget categories)
     *   `id`, `user_id`, `title`, `order`
 *   **`buckets`**:
-    *   `id`, `user_id`, `group_id`, `name`, `target_amount`
+    *   `id`, `user_id`, `group_id`, `name`, `target_amount`, `is_archived`
 *   **`transactions`**: (Single Source of Truth)
-    *   `id`, `user_id`, `date`, `amount` (integer, cents), `description`
+    *   `id`, `user_id`, `date`, `amount` (bigint, cents), `payee`, `description`
     *   `type`: ENUM ('income', 'expense', 'transfer', 'bucket_move')
     *   `from_account_id` (nullable)
     *   `to_account_id` (nullable)
-    *   `bucket_id` (nullable)
+    *   `from_bucket_id` (nullable)
+    *   `to_bucket_id` (nullable)
 
 ### 3.2 SQL Views (Derived Data)
 Instead of calculating balances in JS, we use Postgres Views for performance and consistency.
@@ -51,12 +53,10 @@ Instead of calculating balances in JS, we use Postgres Views for performance and
 
 ### 3.3 Server Actions (`/app/actions`)
 *   `logTransaction(formData)`: Validates input, inserts to DB, revalidates cache.
-*   `createAccount(name, type)`
-*   `createBucket(name, group)`
-*   `seedUserData()`: Called on first login. Creates:
-    *   "System" Group.
-    *   "To Be Budgeted" Bucket.
-    *   Default Groups ("Needs", "Wants", "Savings").
+*   `deleteTransaction(formData)`: Deletes a transaction.
+*   `createAccount`, `archiveAccount`, `unarchiveAccount`, `deleteAccount`
+*   `createBucket`, `archiveBucket`, `unarchiveBucket`, `deleteBucket`
+*   `seedUserData()`: Called on first login. Creates default structure.
 
 ## 4. Data Flow
 

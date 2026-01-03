@@ -5,6 +5,7 @@ export type AccountBalance = {
   name: string
   type: 'checking' | 'savings' | 'credit_card' | 'cash'
   balance: number
+  sort_order?: number
 }
 
 export type BucketBalance = {
@@ -13,6 +14,7 @@ export type BucketBalance = {
   group_id: string
   target_amount: number
   balance: number
+  sort_order?: number
 }
 
 export type DashboardSummary = {
@@ -45,6 +47,7 @@ export type Account = {
   name: string
   type: string
   is_archived: boolean
+  sort_order?: number
 }
 
 export type Bucket = {
@@ -53,6 +56,7 @@ export type Bucket = {
   group_id: string
   target_amount: number
   is_archived: boolean
+  sort_order?: number
 }
 
 /**
@@ -64,6 +68,7 @@ export async function getAccountBalances() {
   const { data, error } = await supabase
     .from('v_account_balances')
     .select('*')
+    .order('sort_order')
     .order('name')
 
   if (error) {
@@ -85,6 +90,7 @@ export async function getBucketBalances() {
   const { data, error } = await supabase
     .from('v_bucket_balances')
     .select('*')
+    .order('sort_order')
     .order('name')
 
   if (error) {
@@ -171,7 +177,7 @@ export async function getRecentTransactions(limit = 30) {
  */
 export async function getAccounts() {
   const supabase = await createClient()
-  const { data, error } = await supabase.from('accounts').select('*').order('name')
+  const { data, error } = await supabase.from('accounts').select('*').order('sort_order').order('name')
   if (error) throw new Error(`Failed to fetch accounts: ${error.message}`)
   return data as Account[]
 }
@@ -181,7 +187,7 @@ export async function getAccounts() {
  */
 export async function getBuckets() {
   const supabase = await createClient()
-  const { data, error } = await supabase.from('buckets').select('*').order('name')
+  const { data, error } = await supabase.from('buckets').select('*').order('sort_order').order('name')
   if (error) throw new Error(`Failed to fetch buckets: ${error.message}`)
   return data as Bucket[]
 }

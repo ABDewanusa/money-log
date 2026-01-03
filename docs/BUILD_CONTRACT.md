@@ -13,7 +13,7 @@ The system **MUST** guarantee the following data integrity rules at all times:
 
 ## 2. Hard Constraints
 The development **MUST** adhere to these technical boundaries:
-*   **Single User Architecture:** The database schema and application logic will assume a single user. No `user_id` complexity in every query if not strictly required by Supabase RLS (though RLS is recommended for security, multi-tenancy logic is banned).
+*   **Single User Architecture:** The database schema and application logic will assume a single user context per request. `user_id` is required on every table and in every query solely to satisfy Supabase Row Level Security (RLS) policies. Multi-tenancy logic beyond simple data isolation is not required.
 *   **Zero Cost:** All infrastructure must run on free tiers (Vercel Hobby, Supabase Free).
 *   **No External APIs:** No connection to banking APIs (Plaid, Yodlee, etc.).
 *   **Framework:** Next.js (App Router) + Tailwind CSS.
