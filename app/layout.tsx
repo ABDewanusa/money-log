@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { BottomNavigation } from "@/app/components/BottomNavigation";
-import { TopNavigation } from "@/app/components/TopNavigation";
-import { ThemeProvider } from "@/app/components/ThemeProvider";
+import { BottomNavigation } from "@/app/components/layout/BottomNavigation";
+import { TopNavigation } from "@/app/components/layout/TopNavigation";
+import { ThemeProvider } from "@/app/components/providers/ThemeProvider";
 import { createClient } from "@/utils/supabase/server";
 
 const geistSans = Geist({
@@ -23,8 +23,10 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
+  modal
 }: Readonly<{
   children: React.ReactNode;
+  modal: React.ReactNode;
 }>) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -44,6 +46,7 @@ export default async function RootLayout({
           <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 pb-24 pt-24">
             {children}
           </main>
+          {modal}
           <BottomNavigation />
         </ThemeProvider>
       </body>

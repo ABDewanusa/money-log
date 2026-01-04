@@ -9,8 +9,8 @@
     *   They add "Checking" ($2,500), "Savings" ($10,000), and "Wallet" ($45).
     *   *Result:* Total System Value is $12,545.
 3.  **Strategy (Groups & Buckets):**
-    *   The user sees a default "Needs" group. They add "Rent" and "Groceries".
-    *   They create a "Savings Goals" group and add "Emergency Fund".
+    *   The user creates groups mapped to **Core Types**: "Housing" (Need), "Food" (Need), "Fun" (Want), "Emergency Fund" (Savings).
+    *   They add buckets like "Rent" under Housing and "Groceries" under Food.
     *   *Mental Model:* At this exact moment, they have $12,545 in "To Be Budgeted".
 4.  **Allocation (Giving Dollars a Job):**
     *   The user "moves" $10,000 from "To Be Budgeted" to "Emergency Fund".
@@ -24,7 +24,7 @@
 1.  **The Trigger:** The user buys a coffee for $4.50 using their Debit Card.
 2.  **Immediate Action:** While waiting for the drink, they open the app.
 3.  **The Input:**
-    *   Tap "**+ Log Transaction**" on the Dashboard Action Bar.
+    *   Tap "**+ Log Transaction**" to open the modal (Intercepting Route).
     *   Type "4.50".
     *   Select "Expense".
     *   Account defaults to "Checking" (last used or first active).
@@ -65,7 +65,7 @@
 *   **The Problem:** In a spreadsheet, $10,000 in a savings account looks like a blob of money. Users often "borrow" from it mentally for a vacation, then forget it was meant for a House Downpayment.
 *   **The Money Log Way:**
     *   The user sees "Savings Account: $10,000".
-    *   BUT, below that, they see buckets (labeled "Goal" for Savings, "Budget" for others):
+    *   BUT, below that, they see buckets organized under user-defined groups with Core Types:
         *   bucket: "House Downpayment: $8,000"
         *   bucket: "New Laptop: $1,500"
         *   bucket: "Car Repair: $500"

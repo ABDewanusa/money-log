@@ -51,6 +51,116 @@ export async function archiveAccount(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
+export async function createGroup(formData: FormData) {
+  const supabase = await createClient()
+  const title = formData.get('title') as string
+  const type = formData.get('type') as string
+  
+  if (!title) return
+
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return
+
+  // Get max sort order
+  const { data: existingGroups } = await supabase
+    .from('groups')
+    .select('sort_order')
+    .eq('user_id', user.id)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+
+  const nextOrder = (existingGroups?.[0]?.sort_order || 0) + 10
+
+  const { error } = await supabase.from('groups').insert({
+    title,
+    type: type || null,
+    user_id: user.id,
+    sort_order: nextOrder
+  })
+
+  if (error) {
+    console.error('Create Group Error:', error)
+    return
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
+export async function updateGroup(formData: FormData) {
+  const supabase = await createClient()
+  const groupId = formData.get('group_id') as string
+  const title = formData.get('title') as string
+  const type = formData.get('type') as string
+
+  if (!groupId || !title) return
+
+  const { error } = await supabase
+    .from('groups')
+    .update({ 
+      title,
+      type: type || null
+    })
+    .eq('id', groupId)
+
+  if (error) {
+    console.error('Update Group Error:', error)
+    return
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
+export async function deleteGroup(formData: FormData) {
+  const supabase = await createClient()
+  const groupId = formData.get('group_id') as string
+
+  if (!groupId) return
+
+  // Check if group has buckets
+  const { count, error: countError } = await supabase
+    .from('buckets')
+    .select('*', { count: 'exact', head: true })
+    .eq('group_id', groupId)
+
+  if (countError) {
+    console.error('Check Buckets Error:', countError)
+    return
+  }
+
+  if (count && count > 0) {
+    // Cannot delete group with buckets
+    // In a real app, we should return an error to the UI
+    console.error('Cannot delete group with buckets')
+    return
+  }
+
+  const { error } = await supabase
+    .from('groups')
+    .delete()
+    .eq('id', groupId)
+
+  if (error) {
+    console.error('Delete Group Error:', error)
+    return
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
+export async function updateGroupOrder(items: { id: string; sort_order: number }[]) {
+  const supabase = await createClient()
+
+  for (const item of items) {
+    await supabase.from('groups').update({ sort_order: item.sort_order }).eq('id', item.id)
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
 export async function updateAccountType(formData: FormData) {
   const supabase = await createClient()
   const accountId = formData.get('account_id') as string
@@ -280,6 +390,36 @@ export async function updateBucketTarget(formData: FormData) {
 
   if (error) {
     console.error('Update Bucket Target Error:', error)
+    return
+  }
+
+  revalidatePath('/settings')
+  revalidatePath('/dashboard')
+}
+
+export async function updateBucket(formData: FormData) {
+  const supabase = await createClient()
+  const bucketId = formData.get('bucket_id') as string
+  const name = formData.get('name') as string
+  const targetStr = formData.get('target_amount') as string
+  const groupId = formData.get('group_id') as string
+
+  if (!bucketId) return
+
+  const updates: any = {}
+  if (name) updates.name = name
+  if (targetStr !== null && targetStr !== undefined) {
+    updates.target_amount = targetStr ? Math.round(parseFloat(targetStr) * 100) : 0
+  }
+  if (groupId) updates.group_id = groupId
+
+  const { error } = await supabase
+    .from('buckets')
+    .update(updates)
+    .eq('id', bucketId)
+
+  if (error) {
+    console.error('Update Bucket Error:', error)
     return
   }
 

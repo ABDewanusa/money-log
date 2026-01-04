@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useId } from 'react'
+import { useState, useEffect } from 'react'
 import {
   DndContext, 
   closestCenter,
@@ -18,17 +18,22 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { updateAccountOrder, updateAccountType, archiveAccount, unarchiveAccount, deleteAccount } from '@/app/actions/settings'
+import { updateAccountOrder } from '@/app/actions/settings'
+import { Account } from '@/app/lib/api'
 
-type Account = {
-  id: string
-  name: string
-  type: string
-  is_archived: boolean
-  sort_order?: number
-}
-
-function SortableItem({ account }: { account: Account }) {
+function SortableItem({ 
+  account, 
+  onDelete, 
+  onArchive, 
+  onUnarchive, 
+  onUpdateType 
+}: { 
+  account: Account
+  onDelete: (id: string) => void
+  onArchive: (id: string) => void
+  onUnarchive: (id: string) => void
+  onUpdateType: (formData: FormData) => void
+}) {
   const {
     attributes,
     listeners,
@@ -67,7 +72,7 @@ function SortableItem({ account }: { account: Account }) {
           
           {isEditing ? (
             <form action={async (formData) => {
-              await updateAccountType(formData)
+              onUpdateType(formData)
               setIsEditing(false)
             }} className="flex gap-2 mt-1 flex-wrap">
               <input type="hidden" name="account_id" value={account.id} />
@@ -102,8 +107,7 @@ function SortableItem({ account }: { account: Account }) {
 
       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
         {!account.is_archived ? (
-          <form action={archiveAccount}>
-            <input type="hidden" name="account_id" value={account.id} />
+          <form action={() => onArchive(account.id)}>
             <button 
               type="submit"
               className="w-20 text-xs font-medium text-orange-700 dark:text-orange-400 hover:text-orange-900 dark:hover:text-orange-300 border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 px-3 py-1.5 rounded transition-colors"
@@ -112,8 +116,7 @@ function SortableItem({ account }: { account: Account }) {
             </button>
           </form>
         ) : (
-          <form action={unarchiveAccount}>
-            <input type="hidden" name="account_id" value={account.id} />
+          <form action={() => onUnarchive(account.id)}>
             <button 
               type="submit"
               className="w-20 text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded transition-colors"
@@ -122,8 +125,7 @@ function SortableItem({ account }: { account: Account }) {
             </button>
           </form>
         )}
-        <form action={deleteAccount}>
-          <input type="hidden" name="account_id" value={account.id} />
+        <form action={() => onDelete(account.id)}>
           <button 
             type="submit"
             className="w-20 flex-shrink-0 text-xs font-medium text-red-700 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 px-3 py-1.5 rounded transition-colors"
@@ -136,11 +138,26 @@ function SortableItem({ account }: { account: Account }) {
   )
 }
 
-export default function SortableAccountList({ accounts }: { accounts: Account[] }) {
-  const id = useId()
+export default function SortableAccountList({ 
+  accounts,
+  onDelete,
+  onArchive,
+  onUnarchive,
+  onUpdateType
+}: { 
+  accounts: Account[] 
+  onDelete: (id: string) => void
+  onArchive: (id: string) => void
+  onUnarchive: (id: string) => void
+  onUpdateType: (formData: FormData) => void
+}) {
   // Sort accounts by sort_order locally
   const [items, setItems] = useState(accounts.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)))
   
+  useEffect(() => {
+    setItems(accounts.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)))
+  }, [accounts])
+
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -174,7 +191,7 @@ export default function SortableAccountList({ accounts }: { accounts: Account[] 
 
   return (
     <DndContext 
-      id={id}
+      id="dnd-accounts"
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
@@ -185,7 +202,14 @@ export default function SortableAccountList({ accounts }: { accounts: Account[] 
       >
         <div className="divide-y divide-gray-200 dark:divide-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
           {items.map(account => (
-            <SortableItem key={account.id} account={account} />
+            <SortableItem 
+              key={account.id} 
+              account={account} 
+              onDelete={onDelete}
+              onArchive={onArchive}
+              onUnarchive={onUnarchive}
+              onUpdateType={onUpdateType}
+            />
           ))}
         </div>
       </SortableContext>

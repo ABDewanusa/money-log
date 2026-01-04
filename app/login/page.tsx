@@ -4,7 +4,7 @@ import { login, signup, loginWithGoogle } from './actions'
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { useFormStatus } from 'react-dom'
-import { ThemeToggle } from '@/app/components/ThemeToggle'
+import { ThemeToggle } from '@/app/components/ui/ThemeToggle'
 
 function SubmitButtons() {
   const { pending } = useFormStatus()

@@ -32,7 +32,7 @@ The MVP **MUST NOT** include:
 
 ## 4. Allowed Simplifications
 To maximize speed, the following shortcuts are **PERMITTED**:
-*   **Hardcoded Groups:** Default groups (Needs, Wants, Savings) are seeded in the database. Dynamic creation of new groups is not required for MVP.
+*   **Seeded Defaults:** Provide sensible default groups, but users can create and map new groups to Core Types.
 *   **Minimal Error Handling:** UI can simply alert "Error" on failure; detailed recovery flows are not required.
 *   **Basic Validation:** Form validation can be minimal (e.g., just "required" fields).
 *   **No "Undo":** Deleting a transaction is permanent. No "Trash" or "Undo" functionality.
@@ -42,10 +42,11 @@ To maximize speed, the following shortcuts are **PERMITTED**:
 The MVP is considered **DONE** when:
 1.  **Deployment:** The app is live on a Vercel URL.
 2.  **Auth:** A user can log in.
-3.  **Setup:** A user can create at least 2 Accounts and 2 Buckets.
+3.  **Setup:** A user can create at least 2 Accounts, 2 Groups (mapped to Core Types), and 2 Buckets.
 4.  **Transaction Flow:**
     *   User can log an Income (Account increases, "To Be Budgeted" increases).
     *   User can log an Expense (Account decreases, Bucket decreases).
     *   User can Transfer (Account A -> Account B).
     *   User can Bucket Move (Bucket A -> Bucket B).
-5.  **Verification:** The Dashboard shows the correct total balance across all Accounts and all Buckets, and they match.
+5.  **Verification:** The Dashboard shows the correct total balance across all Accounts and all Buckets, grouped by Core Type, and they match.
+6.  **UX:** The "New Transaction" modal works with bottom navigation present and does not obscure actions.

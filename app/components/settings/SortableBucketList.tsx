@@ -18,18 +18,25 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { updateBucketOrder, archiveBucket, unarchiveBucket, deleteBucket, updateBucketTarget } from '@/app/actions/settings'
+import { updateBucketOrder } from '@/app/actions/settings'
 import { formatMoney } from '@/utils/format/money'
+import { Group, Bucket } from '@/app/lib/api'
 
-type Bucket = {
-  id: string
-  name: string
-  target_amount: number
-  is_archived: boolean
-  sort_order?: number
-}
-
-function SortableBucketItem({ bucket }: { bucket: Bucket }) {
+function SortableBucketItem({ 
+  bucket, 
+  groups,
+  onDelete,
+  onArchive,
+  onUnarchive,
+  onUpdate
+}: { 
+  bucket: Bucket
+  groups: Group[]
+  onDelete: (id: string) => void
+  onArchive: (id: string) => void
+  onUnarchive: (id: string) => void
+  onUpdate: (formData: FormData) => void
+}) {
   const {
     attributes,
     listeners,
@@ -69,25 +76,43 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
           {isEditing ? (
             <form 
               action={async (formData) => {
-                await updateBucketTarget(formData)
+                onUpdate(formData)
                 setIsEditing(false)
               }}
-              className="mt-1 flex items-center gap-2"
+              className="mt-1 flex items-center gap-2 flex-wrap"
             >
               <input type="hidden" name="bucket_id" value={bucket.id} />
-              <input 
-                name="target_amount" 
-                type="number" 
-                step="0.01" 
-                defaultValue={bucket.target_amount / 100}
-                className="w-24 text-xs p-1 border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
-                autoFocus
-                onKeyDown={(e) => {
-                  if (e.key === 'Escape') setIsEditing(false)
-                }}
-              />
-              <button type="submit" className="text-xs text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300">Save</button>
-              <button type="button" onClick={() => setIsEditing(false)} className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">Cancel</button>
+              
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-500">Target:</span>
+                <input 
+                  name="target_amount" 
+                  type="number" 
+                  step="0.01" 
+                  defaultValue={bucket.target_amount / 100}
+                  className="w-20 text-xs p-1 border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
+                  autoFocus
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setIsEditing(false)
+                  }}
+                />
+              </div>
+
+              <div className="flex items-center gap-1">
+                <span className="text-xs text-gray-500">Group:</span>
+                <select 
+                  name="group_id"
+                  defaultValue={bucket.group_id}
+                  className="text-xs p-1 border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white max-w-[120px]"
+                >
+                  {groups.map(g => (
+                    <option key={g.id} value={g.id}>{g.title}</option>
+                  ))}
+                </select>
+              </div>
+
+              <button type="submit" className="text-xs text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300 px-1">Save</button>
+              <button type="button" onClick={() => setIsEditing(false)} className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-1">Cancel</button>
             </form>
           ) : (
             <div className="flex items-center gap-2 mt-0.5 h-5">
@@ -97,7 +122,7 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
                {!bucket.is_archived && (
                  <button 
                    onClick={() => setIsEditing(true)}
-                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity"
+                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                  >
                    Edit
                  </button>
@@ -111,8 +136,7 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
         {bucket.name !== 'To Be Budgeted' && (
           <>
             {!bucket.is_archived ? (
-              <form action={archiveBucket}>
-                <input type="hidden" name="bucket_id" value={bucket.id} />
+              <form action={() => onArchive(bucket.id)}>
                 <button 
                   type="submit"
                   className="w-20 text-xs font-medium text-orange-700 dark:text-orange-400 hover:text-orange-900 dark:hover:text-orange-300 border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 px-3 py-1.5 rounded transition-colors"
@@ -121,8 +145,7 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
                 </button>
               </form>
             ) : (
-              <form action={unarchiveBucket}>
-                <input type="hidden" name="bucket_id" value={bucket.id} />
+              <form action={() => onUnarchive(bucket.id)}>
                 <button 
                   type="submit"
                   className="w-20 text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded transition-colors"
@@ -131,8 +154,7 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
                 </button>
               </form>
             )}
-            <form action={deleteBucket}>
-              <input type="hidden" name="bucket_id" value={bucket.id} />
+            <form action={() => onDelete(bucket.id)}>
               <button 
                 type="submit"
                 className="w-20 flex-shrink-0 text-xs font-medium text-red-700 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 px-3 py-1.5 rounded transition-colors"
@@ -147,8 +169,25 @@ function SortableBucketItem({ bucket }: { bucket: Bucket }) {
   )
 }
 
-export default function SortableBucketList({ buckets }: { buckets: Bucket[] }) {
-  const id = useId()
+export default function SortableBucketList({ 
+  buckets, 
+  groups,
+  onDelete,
+  onArchive,
+  onUnarchive,
+  onUpdate,
+  id: propId
+}: { 
+  buckets: Bucket[] 
+  groups: Group[] 
+  onDelete: (id: string) => void
+  onArchive: (id: string) => void
+  onUnarchive: (id: string) => void
+  onUpdate: (formData: FormData) => void
+  id?: string
+}) {
+  const generatedId = useId()
+  const dndId = propId || generatedId
   const [items, setItems] = useState(buckets)
 
   useEffect(() => {
@@ -187,7 +226,7 @@ export default function SortableBucketList({ buckets }: { buckets: Bucket[] }) {
 
   return (
     <DndContext 
-      id={id}
+      id={dndId}
       sensors={sensors}
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
@@ -198,7 +237,15 @@ export default function SortableBucketList({ buckets }: { buckets: Bucket[] }) {
       >
         <div className="divide-y divide-gray-200 dark:divide-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
           {items.map(bucket => (
-            <SortableBucketItem key={bucket.id} bucket={bucket} />
+            <SortableBucketItem 
+              key={bucket.id} 
+              bucket={bucket} 
+              groups={groups} 
+              onDelete={onDelete}
+              onArchive={onArchive}
+              onUnarchive={onUnarchive}
+              onUpdate={onUpdate}
+            />
           ))}
         </div>
       </SortableContext>

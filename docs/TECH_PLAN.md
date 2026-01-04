@@ -1,11 +1,11 @@
 # TECH PLAN: Money Log MVP
 
 ## 1. Architecture Overview
-*   **Framework:** Next.js 14+ (App Router)
+*   **Framework:** Next.js (App Router)
 *   **Database:** Supabase (PostgreSQL)
 *   **Styling:** Tailwind CSS
 *   **Deployment:** Vercel (Zero-config)
-*   **Pattern:** Server Components for read, Server Actions for write. No API routes needed.
+*   **Pattern:** Server Components for read, Server Actions for write. Intercepting Route modal for fast entry.
 *   **Proxy:** Uses `proxy.ts` (formerly middleware) for auth redirects.
 
 ## 2. Frontend Structure (App Router)
@@ -13,23 +13,31 @@ All routes protected by middleware except public landing.
 
 ```
 /app
-  /login              # Public: Auth entry point
-  /dashboard          # Private: Main view (Groups/Buckets/Accounts summary)
-  /transactions       # Private: List view
-    /new              # Private: Dedicated "Add Transaction" page
-  /settings           # Private: CRUD for Accounts & Buckets (Create/Archive/Delete)
+  /login                  # Public: Auth entry point
+  /dashboard              # Private: Main view (Core Type grouping + balances)
+  /transactions           # Private: List view with filter tabs
+    /new                  # Private: Full page entry route
+  /@modal/(.)transactions/new  # Intercepting Route modal
+  /reports                # Private: Monthly/Yearly stats
+  /settings               # Private: CRUD for Accounts, Groups, Buckets
   /components
-    BottomNavigation.tsx # Persistent footer nav
-  layout.tsx          # Global Shell (Nav, Auth check)
-  page.tsx            # Redirects to /dashboard or /login
+    /dashboard
+    /settings
+    /transactions
+    /layout
+    /ui
+    /providers
+  layout.tsx              # Global Shell (Top/Bottom nav, ThemeProvider)
+  page.tsx                # Redirects to /dashboard or /login
 ```
 
 **Key Components:**
 *   `BottomNavigation`: Fixed footer with tabs (Dashboard, Transactions, Settings).
-*   `TransactionForm`: The most critical component. Optimized for mobile touch.
+*   `TransactionForm`: Critical component. Optimized for mobile touch; used in modal and full page.
 *   `BalanceCard`: Display for Account/Bucket balances.
-*   `GroupSection`: Collapsible/Organized view for Budget Groups.
+*   `GroupSection`: Organized view for budgets grouped by Core Type.
 *   `AccountList`: List of accounts with balances.
+*   `SubmitButton`: Uses form status; manual state in complex forms.
 
 ## 3. Backend Structure (Supabase)
 
@@ -59,7 +67,8 @@ Instead of calculating balances in JS, we use Postgres Views for performance and
 *   `logTransaction(formData)`: Validates input, inserts to DB, revalidates cache.
 *   `deleteTransaction(formData)`: Deletes a transaction.
 *   `createAccount`, `archiveAccount`, `unarchiveAccount`, `deleteAccount`
-*   `createBucket`, `archiveBucket`, `unarchiveBucket`, `deleteBucket`
+*   `createGroup`, `updateGroup`, `deleteGroup`
+*   `createBucket`, `updateBucket`, `archiveBucket`, `unarchiveBucket`, `deleteBucket`
 *   `seedUserData()`: Called on first login. Creates default structure.
 
 ## 4. Data Flow
@@ -72,13 +81,12 @@ Instead of calculating balances in JS, we use Postgres Views for performance and
 5.  Sent to client (Zero client-side fetch waterfall).
 
 **Write (User Action):**
-1.  User submits `<form action={logTransaction}>`.
+1.  User submits `<form>` in modal or page.
 2.  **Server Action** runs on Vercel.
 3.  Validates data (Zod).
 4.  Inserts into `transactions` table.
-5.  Calls `revalidatePath('/dashboard')`.
-6.  Next.js sends back updated HTML for the page.
-7.  UI updates immediately.
+5.  Revalidation and refresh.
+6.  Optimistic UI where applicable (settings lists).
 
 ## 5. Styling / UI Approach
 *   **Library:** Tailwind CSS (standard).
@@ -91,8 +99,8 @@ Instead of calculating balances in JS, we use Postgres Views for performance and
 ## 6. State Management Strategy
 *   **Global Store:** **NONE**. Do not use Redux, Zustand, or Context for data.
 *   **Server State:** Handled by Next.js Cache & Revalidation.
-*   **UI State:** minimal `useState` for things like "isModalOpen" or form inputs.
-*   **URL State:** Use URL Search Params for filters (e.g., `?month=2024-01`).
+*   **UI State:** Minimal `useState` for form inputs; `useOptimistic` for list mutations.
+*   **URL State:** Use URL Search Params for filters (e.g., `?type=expense`, `?month=2024-01`).
 
 ## 7. Deployment Flow
 1.  **Local:** `npm run dev` (Connects to Supabase Dev project).
@@ -101,7 +109,7 @@ Instead of calculating balances in JS, we use Postgres Views for performance and
 4.  **Env Vars:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` set in Vercel.
 
 ## 8. Known Technical Tradeoffs
-*   **Latency:** Every interaction requires a round-trip to the server (no optimistic UI for MVP to save complexity).
+*   **Latency:** Server actions round-trip remains, mitigated by optimistic UI for settings lists.
 *   **Offline:** App will not work without internet.
-*   **Hard Reloads:** Data updates might feel "jumpy" without optimistic updates, but guarantees accuracy.
+*   **Hard Reloads:** Reduced by modal and optimistic updates, but some flows still revalidate.
 *   **Constraint:** "Buckets" logic relies on strict entry. If a user creates a transaction without a bucket (where required), the math breaks. Database constraints must enforce this.

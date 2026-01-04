@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { logTransaction } from '@/app/actions/logTransaction'
 import { TransactionType } from '@/app/lib/schemas'
+import SubmitButton from './SubmitButton'
 
 type Account = { id: string; name: string }
 type Bucket = { id: string; name: string; group_title: string }
@@ -24,7 +25,9 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
   async function handleSubmit(formData: FormData) {
     setIsSubmitting(true)
     setError(null)
-
+    
+    // ... logic
+    
     const rawData: any = {
       type,
       amount: parseFloat(formData.get('amount') as string),
@@ -32,7 +35,6 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
       description: formData.get('description') as string,
     }
 
-    // Append conditional fields based on type
     if (type === 'expense') {
       rawData.from_account_id = formData.get('from_account_id')
       rawData.from_bucket_id = formData.get('from_bucket_id')
@@ -50,19 +52,16 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
     const result = await logTransaction(rawData)
 
     if (result.success) {
-      // Reset form or close modal
       if (onSuccess) onSuccess()
       else {
-        // Basic reset if no callback
         const form = document.getElementById('transaction-form') as HTMLFormElement
         form.reset()
-        // Reset type to default or keep? Keep is usually better for sequential entry.
         alert('Transaction Saved')
       }
     } else {
       setError(result.error || 'Failed to save transaction')
     }
-
+    
     setIsSubmitting(false)
   }
 
@@ -95,7 +94,11 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
         ))}
       </div>
 
-      <form id="transaction-form" action={handleSubmit} className="space-y-5">
+      <form 
+        id="transaction-form" 
+        action={handleSubmit} 
+        className="space-y-5"
+      >
         {error && (
           <div className="bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300 p-3 rounded-md text-sm border border-red-200 dark:border-red-800">{error}</div>
         )}
@@ -204,7 +207,7 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full py-3 px-4 bg-black text-white rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-gray-200"
+          className="w-full py-3 px-4 bg-black text-white rounded-lg font-medium hover:bg-gray-800 disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-gray-200 shadow-sm transition-all"
         >
           {isSubmitting ? 'Saving...' : 'Save Transaction'}
         </button>

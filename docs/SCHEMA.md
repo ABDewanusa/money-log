@@ -26,13 +26,14 @@ create table accounts (
 ```
 
 ### `groups`
-High-level strategy containers for organization.
+High-level strategy containers for organization, mapped to a Core Type (philosophy).
 
 ```sql
 create table groups (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users not null,
   title text not null,
+  type text not null check (type in ('need','want','savings')),
   sort_order integer default 0,
   created_at timestamptz default now()
 );
@@ -153,6 +154,22 @@ select
   (select sum(balance) from v_bucket_balances) as total_budgeted,
   (select sum(balance) from v_account_balances) - (select sum(balance) from v_bucket_balances) as unallocated_error_check
 ;
+```
+
+### Core Type Aggregation (Reports)
+Aggregate expenses by group Core Type for reporting.
+
+```sql
+-- Example sketch for monthly expenses by Core Type
+-- Replace table/view names to match actual schema
+select
+  g.type as core_type,
+  sum(case when t.type = 'expense' then t.amount else 0 end) as total_expense
+from transactions t
+join buckets b on b.id = coalesce(t.from_bucket_id, t.to_bucket_id)
+join groups g on g.id = b.group_id
+where date_trunc('month', t.date) = date_trunc('month', current_date)
+group by g.type;
 ```
 
 ## 5. Security (RLS)

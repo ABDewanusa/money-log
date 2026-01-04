@@ -31,12 +31,20 @@ export async function seedUserData() {
   const userId = user.id
 
   // 2. Groups Setup
-  // We want to ensure these groups exist:
+  // Enhanced Seeding: Create specific groups mapped to core types
   const defaultGroups = [
-    { title: 'System', order: 0 }, // For "To Be Budgeted"
-    { title: 'Needs', order: 10 },
-    { title: 'Wants', order: 20 },
-    { title: 'Savings', order: 30 },
+    { title: 'System', type: null, order: 0 }, // For "To Be Budgeted"
+    // Needs
+    { title: 'Housing', type: 'need', order: 10 },
+    { title: 'Food', type: 'need', order: 11 },
+    { title: 'Transportation', type: 'need', order: 12 },
+    { title: 'Utilities', type: 'need', order: 13 },
+    // Wants
+    { title: 'Entertainment', type: 'want', order: 20 },
+    { title: 'Shopping', type: 'want', order: 21 },
+    // Savings
+    { title: 'Emergency Fund', type: 'savings', order: 30 },
+    { title: 'Goals', type: 'savings', order: 31 },
   ]
 
   // Fetch existing groups to avoid duplicates (Idempotency)
@@ -53,6 +61,7 @@ export async function seedUserData() {
     .map(g => ({
       user_id: userId,
       title: g.title,
+      type: g.type,
       sort_order: g.order
     }))
 
@@ -61,7 +70,12 @@ export async function seedUserData() {
       .from('groups')
       .insert(groupsToInsert)
     
-    if (insertGroupsError) throw new Error('Failed to create default groups')
+    if (insertGroupsError) {
+       // Fallback for existing users who haven't run the migration yet (ignore type)
+       console.warn('Failed to insert with type, trying without type (backward compatibility)', insertGroupsError)
+       const legacyGroups = groupsToInsert.map(({ type, ...rest }) => rest)
+       await supabase.from('groups').insert(legacyGroups)
+    }
   }
 
   // Refetch groups to get IDs (including newly created ones)

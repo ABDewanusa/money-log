@@ -23,15 +23,17 @@ Personal finance management is often fragmented between overly complex automated
 
 ### IN Scope
 -   **Authentication:** Email/Password (Supabase Auth).
--   **Dashboard:** High-level summary of Groups (Needs, Wants, Future) and Account Balances.
+-   **Dashboard:** Budgets grouped by **Core Type** (Need, Want, Savings) and Account Balances. Recent Activity widget.
 -   **Account Management:** Create, Archive, Unarchive, Delete (Soft) Accounts.
--   **Bucket Management:** Create, Update Targets, Archive, Unarchive, Delete (Soft) Buckets within Groups.
+-   **Group Management:** Create user-defined Groups mapped to a Core Type; drag-and-drop sort.
+-   **Bucket Management:** Create, Update Targets and Group, Archive, Unarchive, Delete (Soft) Buckets within Groups; drag-and-drop sort.
 -   **Transaction Management:**
     -   Log Income (To Account, To Bucket).
     -   Log Expense (From Account, From Bucket).
     -   Transfer (Account to Account).
     -   Bucket Move (Bucket to Bucket).
--   **Simple Reporting:** Monthly spending by Group/Bucket.
+-   **Transactions UX:** Intercepting Route modal for fast entry; filter tabs (**All | Income | Expense | Transfers**).
+-   **Simple Reporting:** Monthly and yearly stats; expenses aggregated by **Core Type**.
 
 ### OUT Scope (Post-MVP)
 -   Bank integration (Plaid/Teller).
@@ -44,8 +46,9 @@ Personal finance management is often fragmented between overly complex automated
 ## 5. Core Features
 
 ### 5.1 Data Structure (The "Envelope" Model)
-*   **Groups:** High-level strategy containers.
-    *   *Examples:* "Monthly Fixed", "Day-to-Day", "Sinking Funds", "Investments".
+*   **Groups:** User-defined categories mapped to a Core Type.
+    *   *Core Types:* `need`, `want`, `savings`.
+    *   *Examples:* "Food" (need), "Housing" (need), "Fun" (want), "Emergency Fund" (savings).
 *   **Buckets:** The actual budget containers.
     *   *Examples:* "Rent", "Groceries", "Car Repair Fund".
     *   *Properties:* Name, Target Amount (optional).
@@ -66,9 +69,11 @@ Personal finance management is often fragmented between overly complex automated
 
 ## 7. UX Principles
 1.  **Speed over Flash:** Transaction entry form should load instantly.
+    *   Use an Intercepting Route modal to avoid full page navigation.
 2.  **Trust but Verify:** Always show the "To Be Budgeted" balance. The system must ensure Sum(Accounts) == Sum(Buckets) at all times.
 3.  **Mobile First (Web):** The UI must work perfectly on a mobile browser for on-the-go entry.
 4.  **No Click Fatigue:** minimizing clicks to log a standard expense.
+5.  **Optimistic UI:** Lists should reflect changes immediately while server actions complete.
 
 ## 8. Release Criteria
 1.  User can sign up and log in.

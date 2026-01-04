@@ -1,11 +1,10 @@
-
 import { createClient } from '@/utils/supabase/server'
 import { getAccounts, getBuckets, getGroups } from '@/app/lib/api'
-import StandardTransactionForm from '@/app/components/transactions/StandardTransactionForm'
-import Link from 'next/link'
+import ModalTransactionForm from '@/app/components/transactions/ModalTransactionForm'
+import Modal from '@/app/components/ui/Modal'
 import { redirect } from 'next/navigation'
 
-export default async function NewTransactionPage() {
+export default async function InterceptedNewTransactionPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -32,21 +31,14 @@ export default async function NewTransactionPage() {
     }))
 
   return (
-    <div className="space-y-6 pb-20">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold dark:text-white">New Transaction</h1>
-        <Link 
-          href="/transactions" 
-          className="text-sm text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200"
-        >
-          &larr; Cancel
-        </Link>
+    <Modal>
+      <div className="bg-white dark:bg-slate-800 p-0 rounded-lg">
+        {/* We reuse the form styles but remove the container wrapper since Modal provides it */}
+        <ModalTransactionForm 
+          accounts={activeAccounts} 
+          buckets={activeBuckets} 
+        />
       </div>
-
-      <StandardTransactionForm 
-        accounts={activeAccounts} 
-        buckets={activeBuckets} 
-      />
-    </div>
+    </Modal>
   )
 }

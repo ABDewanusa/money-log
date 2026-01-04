@@ -50,6 +50,7 @@ This document outlines the styling standards for the Money Log application, ensu
     -   **Styling**: `bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-800`.
     -   **Active State**: `text-black dark:text-white`, icon stroke width increases.
     -   **Inactive State**: `text-gray-500 dark:text-gray-400`.
+    -   **Modal Interaction**: Ensure modal overlay uses a higher z-index than bottom nav (e.g., `z-[60]`) and modal content adds bottom safe-area padding.
 
 ## Component Patterns
 
@@ -68,3 +69,9 @@ Instead of floating individual cards, use **Grouped Lists**:
 ### 3. Dashboard
 -   **Header**: `border-b border-gray-200 dark:border-slate-700`
 -   **Summary Cards**: Standalone cards (`bg-white dark:bg-slate-800`).
+ -   **Recent Activity**: Transactions list styled as a compact card within the dashboard.
+
+### 4. Modals
+-   **Overlay**: Semi-transparent black with blur (`bg-black/60 backdrop-blur-sm`), z-index above navigation.
+-   **Content**: Constrained width (`max-w-lg`) and height (`max-h-[90vh]`), scrollable (`overflow-y-auto`), rounded corners.
+-   **Safe Area**: Add `pb-[env(safe-area-inset-bottom)]` to avoid obscuring submit buttons on devices with bottom insets.

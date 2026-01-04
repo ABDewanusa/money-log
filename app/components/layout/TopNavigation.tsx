@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { ThemeToggle } from './ThemeToggle'
+import { ThemeToggle } from '../ui/ThemeToggle'
 import { signout } from '@/app/login/actions'
 import { LogOut } from 'lucide-react'
 

@@ -3,12 +3,23 @@ import { deleteTransaction } from '@/app/actions/logTransaction'
 import { formatMoney } from '@/utils/format/money'
 import Link from 'next/link'
 
-export default async function TransactionsPage() {
-  const transactions = await getRecentTransactions()
+export default async function TransactionsPage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const searchParams = await props.searchParams
+  const filter = (typeof searchParams.filter === 'string' ? searchParams.filter : 'all')
+  const transactions = await getRecentTransactions(50, filter === 'all' ? undefined : filter)
+
+  const tabs = [
+    { id: 'all', label: 'All' },
+    { id: 'income', label: 'Income' },
+    { id: 'expense', label: 'Expense' },
+    { id: 'transfer', label: 'Transfers' },
+  ]
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold dark:text-white">Transactions</h1>
         <Link 
           href="/transactions/new" 
@@ -16,6 +27,25 @@ export default async function TransactionsPage() {
         >
           + New Transaction
         </Link>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="flex overflow-x-auto pb-2 sm:pb-0 hide-scrollbar">
+        <div className="flex space-x-1 bg-gray-100 dark:bg-slate-800 p-1 rounded-lg">
+          {tabs.map(tab => (
+            <Link
+              key={tab.id}
+              href={tab.id === 'all' ? '/transactions' : `/transactions?filter=${tab.id}`}
+              className={`px-4 py-2 text-sm font-medium rounded-md transition-colors whitespace-nowrap ${
+                filter === tab.id 
+                  ? 'bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm' 
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div className="bg-white dark:bg-slate-800 rounded-lg shadow overflow-hidden">

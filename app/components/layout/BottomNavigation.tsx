@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, ScrollText, Settings } from 'lucide-react'
+import { LayoutDashboard, ScrollText, Settings, BarChart3 } from 'lucide-react'
 
 export function BottomNavigation() {
   const pathname = usePathname()
@@ -21,6 +21,12 @@ export function BottomNavigation() {
       href: '/transactions', 
       icon: ScrollText,
       isActive: (path: string) => path.startsWith('/transactions')
+    },
+    {
+      name: 'Reports',
+      href: '/reports',
+      icon: BarChart3,
+      isActive: (path: string) => path.startsWith('/reports')
     },
     { 
       name: 'Settings', 
