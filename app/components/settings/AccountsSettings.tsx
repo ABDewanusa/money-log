@@ -1,6 +1,7 @@
 'use client'
 
 import { useOptimistic, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { createAccount, deleteAccount, archiveAccount, unarchiveAccount, updateAccountType } from '@/app/actions/settings'
 import SortableAccountList from './SortableAccountList'
 import SubmitButton from '../ui/SubmitButton'
@@ -15,6 +16,7 @@ type AccountAction =
 
 export default function AccountsSettings({ accounts }: { accounts: Account[] }) {
   const formRef = useRef<HTMLFormElement>(null)
+  const router = useRouter()
   
   const [optimisticAccounts, dispatch] = useOptimistic(
     accounts,
@@ -50,13 +52,15 @@ export default function AccountsSettings({ accounts }: { accounts: Account[] }) 
       name,
       type,
       is_archived: false,
-      sort_order: optimisticAccounts.length
+      sort_order: optimisticAccounts.length,
+      created_at: new Date().toISOString()
     }
     
     dispatch({ type: 'ADD', payload: newAccount })
     formRef.current?.reset()
     
     await createAccount(formData)
+    router.refresh()
   }
 
   async function handleDelete(id: string) {
@@ -64,6 +68,7 @@ export default function AccountsSettings({ accounts }: { accounts: Account[] }) 
     const fd = new FormData()
     fd.append('account_id', id)
     await deleteAccount(fd)
+    router.refresh()
   }
 
   async function handleArchive(id: string) {
@@ -71,6 +76,7 @@ export default function AccountsSettings({ accounts }: { accounts: Account[] }) 
     const fd = new FormData()
     fd.append('account_id', id)
     await archiveAccount(fd)
+    router.refresh()
   }
 
   async function handleUnarchive(id: string) {
@@ -78,6 +84,7 @@ export default function AccountsSettings({ accounts }: { accounts: Account[] }) 
     const fd = new FormData()
     fd.append('account_id', id)
     await unarchiveAccount(fd)
+    router.refresh()
   }
 
   async function handleUpdateType(formData: FormData) {
@@ -86,6 +93,7 @@ export default function AccountsSettings({ accounts }: { accounts: Account[] }) 
     
     dispatch({ type: 'UPDATE_TYPE', payload: { id, type } })
     await updateAccountType(formData)
+    router.refresh()
   }
 
   return (

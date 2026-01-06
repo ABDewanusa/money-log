@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import {
   DndContext, 
   closestCenter,
@@ -18,10 +19,11 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { updateGroup, deleteGroup, updateGroupOrder } from '@/app/actions/settings'
-import { Group } from '@/app/lib/api'
+import { updateCategory, deleteCategory, updateCategoryOrder } from '@/app/actions/settings'
+import { Category } from '@/app/lib/api'
 
-function SortableGroupItem({ group }: { group: Group }) {
+function SortableGroupItem({ group }: { group: Category }) {
+  const router = useRouter()
   const {
     attributes,
     listeners,
@@ -51,10 +53,11 @@ function SortableGroupItem({ group }: { group: Group }) {
         <div className="flex-1 min-w-0">
           {isEditing ? (
             <form action={async (formData) => {
-              await updateGroup(formData)
+              await updateCategory(formData)
               setIsEditing(false)
+              router.refresh()
             }} className="flex gap-2 flex-wrap items-center">
-              <input type="hidden" name="group_id" value={group.id} />
+              <input type="hidden" name="category_id" value={group.id} />
               
               <input 
                 name="title" 
@@ -106,14 +109,14 @@ function SortableGroupItem({ group }: { group: Group }) {
         </div>
       </div>
 
-      <form action={deleteGroup}>
-        <input type="hidden" name="group_id" value={group.id} />
+      <form action={async (formData) => { await deleteCategory(formData); router.refresh() }}>
+        <input type="hidden" name="category_id" value={group.id} />
         <button 
           type="submit" 
           className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-          title="Delete Group"
+          title="Delete Category"
           onClick={(e) => {
-            if (!confirm('Are you sure you want to delete this group? It must be empty.')) {
+            if (!confirm('Are you sure you want to delete this category? It must be empty.')) {
               e.preventDefault()
             }
           }}
@@ -126,8 +129,9 @@ function SortableGroupItem({ group }: { group: Group }) {
   )
 }
 
-export default function SortableGroupList({ groups }: { groups: Group[] }) {
+export default function SortableGroupList({ groups }: { groups: Category[] }) {
   const [items, setItems] = useState(groups)
+  const router = useRouter()
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -145,8 +149,7 @@ export default function SortableGroupList({ groups }: { groups: Group[] }) {
         
         const newItems = arrayMove(items, oldIndex, newIndex)
         
-        // Optimistic update
-        updateGroupOrder(newItems.map((item, index) => ({ id: item.id, sort_order: index })))
+        updateCategoryOrder(newItems.map((item, index) => ({ id: item.id, sort_order: index })))
         
         return newItems
       })
@@ -181,7 +184,7 @@ export default function SortableGroupList({ groups }: { groups: Group[] }) {
       </DndContext>
       {items.length === 0 && (
         <div className="p-4 text-center text-gray-500 text-sm">
-          No groups found.
+          No categories found.
         </div>
       )}
     </div>

@@ -3,18 +3,17 @@
 import { useState } from 'react'
 import { logTransaction } from '@/app/actions/logTransaction'
 import { TransactionType } from '@/app/lib/schemas'
-import SubmitButton from './SubmitButton'
 
 type Account = { id: string; name: string }
-type Bucket = { id: string; name: string; group_title: string }
+type Budget = { id: string; name: string; category_title: string }
 
 type Props = {
   accounts: Account[]
-  buckets: Bucket[]
+  budgets: Budget[]
   onSuccess?: () => void
 }
 
-export default function TransactionForm({ accounts, buckets, onSuccess }: Props) {
+export default function TransactionForm({ accounts, budgets, onSuccess }: Props) {
   const [type, setType] = useState<TransactionType>('expense')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -37,16 +36,16 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
 
     if (type === 'expense') {
       rawData.from_account_id = formData.get('from_account_id')
-      rawData.from_bucket_id = formData.get('from_bucket_id')
+      rawData.from_budget_id = formData.get('from_budget_id')
     } else if (type === 'income') {
       rawData.to_account_id = formData.get('to_account_id')
-      rawData.to_bucket_id = formData.get('to_bucket_id')
+      rawData.to_budget_id = formData.get('to_budget_id')
     } else if (type === 'transfer') {
       rawData.from_account_id = formData.get('from_account_id')
       rawData.to_account_id = formData.get('to_account_id')
-    } else if (type === 'bucket_move') {
-      rawData.from_bucket_id = formData.get('from_bucket_id')
-      rawData.to_bucket_id = formData.get('to_bucket_id')
+    } else if (type === 'budget_move') {
+      rawData.from_budget_id = formData.get('from_budget_id')
+      rawData.to_budget_id = formData.get('to_budget_id')
     }
 
     const result = await logTransaction(rawData)
@@ -65,12 +64,12 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
     setIsSubmitting(false)
   }
 
-  // Group buckets for display
-  const groupedBuckets = buckets.reduce((acc, bucket) => {
-    if (!acc[bucket.group_title]) acc[bucket.group_title] = []
-    acc[bucket.group_title].push(bucket)
+  // Group budgets for display
+  const groupedBudgets = budgets.reduce((acc, budget) => {
+    if (!acc[budget.category_title]) acc[budget.category_title] = []
+    acc[budget.category_title].push(budget)
     return acc
-  }, {} as Record<string, Bucket[]>)
+  }, {} as Record<string, Budget[]>)
 
   return (
     <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 max-w-lg mx-auto w-full">
@@ -78,7 +77,7 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
 
       {/* Type Selector */}
       <div className="flex bg-gray-100 dark:bg-slate-700 p-1 rounded-lg mb-6 overflow-x-auto border border-gray-200 dark:border-slate-600">
-        {(['expense', 'income', 'transfer', 'bucket_move'] as TransactionType[]).map((t) => (
+        {(['expense', 'income', 'transfer', 'budget_move'] as TransactionType[]).map((t) => (
           <button
             key={t}
             onClick={() => setType(t)}
@@ -168,15 +167,15 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
             </div>
           )}
 
-          {/* FROM BUCKET */}
-          {(type === 'expense' || type === 'bucket_move') && (
+          {/* FROM BUDGET */}
+          {(type === 'expense' || type === 'budget_move') && (
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">From Bucket</label>
-              <select name="from_bucket_id" required className="w-full p-2.5 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all">
-                <option value="">Select Bucket</option>
-                {Object.entries(groupedBuckets).map(([group, groupBuckets]) => (
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">From Budget</label>
+              <select name="from_budget_id" required className="w-full p-2.5 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all">
+                <option value="">Select Budget</option>
+                {Object.entries(groupedBudgets).map(([group, groupBudgets]) => (
                   <optgroup key={group} label={group}>
-                    {groupBuckets.map((b) => (
+                    {groupBudgets.map((b) => (
                       <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                   </optgroup>
@@ -185,15 +184,15 @@ export default function TransactionForm({ accounts, buckets, onSuccess }: Props)
             </div>
           )}
 
-          {/* TO BUCKET */}
-          {(type === 'income' || type === 'bucket_move') && (
+          {/* TO BUDGET */}
+          {(type === 'income' || type === 'budget_move') && (
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">To Bucket</label>
-              <select name="to_bucket_id" required className="w-full p-2.5 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all">
-                <option value="">Select Bucket</option>
-                {Object.entries(groupedBuckets).map(([group, groupBuckets]) => (
+              <label className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wide">To Budget</label>
+              <select name="to_budget_id" required className="w-full p-2.5 border border-gray-300 dark:border-slate-600 rounded-md bg-white dark:bg-slate-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-black focus:border-transparent outline-none transition-all">
+                <option value="">Select Budget</option>
+                {Object.entries(groupedBudgets).map(([group, groupBudgets]) => (
                   <optgroup key={group} label={group}>
-                    {groupBuckets.map((b) => (
+                    {groupBudgets.map((b) => (
                       <option key={b.id} value={b.id}>{b.name}</option>
                     ))}
                   </optgroup>

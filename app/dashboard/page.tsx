@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { getAccountBalances, getBucketBalances, getGroups, getRecentTransactions } from '@/app/lib/api'
+import { getAccountBalances, getBudgetBalances, getCategories, getRecentTransactions } from '@/app/lib/api'
 import { formatMoney } from '@/utils/format/money'
 import { BalanceCard } from '@/app/components/dashboard/BalanceCard'
 import { GroupSection } from '@/app/components/dashboard/GroupSection'
@@ -17,32 +17,32 @@ export default async function DashboardPage() {
   }
 
   // 1. Fetch all data in parallel
-  const [groups, bucketBalances, accountBalances, recentTransactions] = await Promise.all([
-    getGroups(),
-    getBucketBalances(),
+  const [groups, budgetBalances, accountBalances, recentTransactions] = await Promise.all([
+    getCategories(),
+    getBudgetBalances(),
     getAccountBalances(),
     getRecentTransactions(5)
   ])
 
   // Calculate summary from balances
   const total_cash = accountBalances.reduce((sum, acc) => sum + acc.balance, 0)
-  const total_budgeted = bucketBalances.reduce((sum, bucket) => sum + bucket.balance, 0)
+  const total_budgeted = budgetBalances.reduce((sum, budget) => sum + budget.balance, 0)
   const summary = {
     total_cash,
     total_budgeted
   }
 
-  // 2. Combine groups with their buckets
-  const groupsWithBuckets = groups.map(group => ({
+  // 2. Combine groups with their budgets
+  const groupsWithBudgets = groups.map(group => ({
     ...group,
-    buckets: bucketBalances.filter(b => b.group_id === group.id)
+    budgets: budgetBalances.filter(b => b.category_id === group.id)
   }))
 
-  // 3. Identify "To Be Budgeted" bucket (System)
-  const tbbBucket = bucketBalances.find(b => b.name === 'To Be Budgeted')
-  const tbbAmount = tbbBucket ? tbbBucket.balance : 0
+  // 3. Identify "To Be Budgeted" budget (System)
+  const tbbBudget = budgetBalances.find(b => b.name === 'To Be Budgeted')
+  const tbbAmount = tbbBudget ? tbbBudget.balance : 0
 
-  // 4. Group Buckets by Philosophy Type (Need, Want, Savings)
+  // 4. Group Budgets by Philosophy Type (Need, Want, Savings)
   
   // Create a map of Group ID -> Group Type
   const groupTypeMap = new Map<string, string>()
@@ -51,23 +51,23 @@ export default async function DashboardPage() {
   })
 
   // Initialize Philosophy Groups
-  const philosophyGroups: Record<string, typeof bucketBalances> = {
+  const philosophyGroups: Record<string, typeof budgetBalances> = {
     need: [],
     want: [],
     savings: [],
     uncategorized: []
   }
 
-  // Distribute buckets into philosophy groups
-  bucketBalances.forEach(bucket => {
-    // Skip System bucket as it is shown in summary cards
-    if (bucket.name === 'To Be Budgeted') return
+  // Distribute budgets into philosophy groups
+  budgetBalances.forEach(budget => {
+    // Skip System budget as it is shown in summary cards
+    if (budget.name === 'To Be Budgeted') return
 
-    const groupType = groupTypeMap.get(bucket.group_id)
+    const groupType = groupTypeMap.get(budget.category_id)
     if (groupType && (groupType === 'need' || groupType === 'want' || groupType === 'savings')) {
-      philosophyGroups[groupType].push(bucket)
+      philosophyGroups[groupType].push(budget)
     } else {
-      philosophyGroups.uncategorized.push(bucket)
+      philosophyGroups.uncategorized.push(budget)
     }
   })
 
@@ -77,28 +77,28 @@ export default async function DashboardPage() {
     title: string
     type: 'need' | 'want' | 'savings' | null
     sort_order: number
-    buckets: typeof bucketBalances
+    budgets: typeof budgetBalances
   }[] = [
     {
       id: 'needs-group',
       title: 'Needs',
       type: 'need',
       sort_order: 1,
-      buckets: philosophyGroups.need.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      budgets: philosophyGroups.need.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
     },
     {
       id: 'wants-group',
       title: 'Wants',
       type: 'want',
       sort_order: 2,
-      buckets: philosophyGroups.want.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      budgets: philosophyGroups.want.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
     },
     {
       id: 'savings-group',
       title: 'Savings',
       type: 'savings',
       sort_order: 3,
-      buckets: philosophyGroups.savings.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      budgets: philosophyGroups.savings.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
     }
   ]
 
@@ -108,7 +108,7 @@ export default async function DashboardPage() {
       title: 'Uncategorized',
       type: null,
       sort_order: 4,
-      buckets: philosophyGroups.uncategorized.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      budgets: philosophyGroups.uncategorized.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
     })
   }
 
@@ -204,7 +204,7 @@ export default async function DashboardPage() {
           
           {finalGroups.length === 0 ? (
             <div className="text-gray-500 text-center py-8 bg-gray-50 rounded-lg">
-              No budget groups yet.
+              No categories yet.
             </div>
           ) : (
             finalGroups.map(group => (

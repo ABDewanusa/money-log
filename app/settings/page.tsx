@@ -1,14 +1,14 @@
-import { getAccounts, getBuckets, getGroups } from '@/app/lib/api'
+import { getAccounts, getBudgets, getCategories } from '@/app/lib/api'
 import Link from 'next/link'
 import AccountsSettings from '@/app/components/settings/AccountsSettings'
-import BucketsSettings from '@/app/components/settings/BucketsSettings'
+import BudgetsSettings from '@/app/components/settings/BudgetsSettings'
 import GroupsSettings from '@/app/components/settings/GroupsSettings'
 
 export default async function SettingsPage() {
-  const [accounts, buckets, groups] = await Promise.all([
+  const [accounts, budgets, categories] = await Promise.all([
     getAccounts(),
-    getBuckets(),
-    getGroups()
+    getBudgets(),
+    getCategories()
   ])
 
   return (
@@ -26,11 +26,11 @@ export default async function SettingsPage() {
       {/* Accounts Section */}
       <AccountsSettings accounts={accounts} />
 
-      {/* Budget Groups Section */}
-      <GroupsSettings groups={groups} />
+      {/* Categories Section */}
+      <GroupsSettings groups={categories} />
 
-      {/* Buckets Section */}
-      <BucketsSettings buckets={buckets} groups={groups} />
+      {/* Budgets Section */}
+      <BudgetsSettings budgets={budgets} groups={categories} />
     </div>
   )
 }

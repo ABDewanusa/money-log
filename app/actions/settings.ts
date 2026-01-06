@@ -51,7 +51,7 @@ export async function archiveAccount(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function createGroup(formData: FormData) {
+export async function createCategory(formData: FormData) {
   const supabase = await createClient()
   const title = formData.get('title') as string
   const type = formData.get('type') as string
@@ -62,16 +62,16 @@ export async function createGroup(formData: FormData) {
   if (!user) return
 
   // Get max sort order
-  const { data: existingGroups } = await supabase
-    .from('groups')
+  const { data: existingCategories } = await supabase
+    .from('categories')
     .select('sort_order')
     .eq('user_id', user.id)
     .order('sort_order', { ascending: false })
     .limit(1)
 
-  const nextOrder = (existingGroups?.[0]?.sort_order || 0) + 10
+  const nextOrder = (existingCategories?.[0]?.sort_order || 0) + 10
 
-  const { error } = await supabase.from('groups').insert({
+  const { error } = await supabase.from('categories').insert({
     title,
     type: type || null,
     user_id: user.id,
@@ -79,7 +79,7 @@ export async function createGroup(formData: FormData) {
   })
 
   if (error) {
-    console.error('Create Group Error:', error)
+    console.error('Create Category Error:', error)
     return
   }
 
@@ -87,24 +87,24 @@ export async function createGroup(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function updateGroup(formData: FormData) {
+export async function updateCategory(formData: FormData) {
   const supabase = await createClient()
-  const groupId = formData.get('group_id') as string
+  const categoryId = formData.get('category_id') as string
   const title = formData.get('title') as string
   const type = formData.get('type') as string
 
-  if (!groupId || !title) return
+  if (!categoryId || !title) return
 
   const { error } = await supabase
-    .from('groups')
+    .from('categories')
     .update({ 
       title,
       type: type || null
     })
-    .eq('id', groupId)
+    .eq('id', categoryId)
 
   if (error) {
-    console.error('Update Group Error:', error)
+    console.error('Update Category Error:', error)
     return
   }
 
@@ -112,37 +112,37 @@ export async function updateGroup(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function deleteGroup(formData: FormData) {
+export async function deleteCategory(formData: FormData) {
   const supabase = await createClient()
-  const groupId = formData.get('group_id') as string
+  const categoryId = formData.get('category_id') as string
 
-  if (!groupId) return
+  if (!categoryId) return
 
-  // Check if group has buckets
+  // Check if category has budgets
   const { count, error: countError } = await supabase
-    .from('buckets')
+    .from('budgets')
     .select('*', { count: 'exact', head: true })
-    .eq('group_id', groupId)
+    .eq('category_id', categoryId)
 
   if (countError) {
-    console.error('Check Buckets Error:', countError)
+    console.error('Check Budgets Error:', countError)
     return
   }
 
   if (count && count > 0) {
-    // Cannot delete group with buckets
+    // Cannot delete category with budgets
     // In a real app, we should return an error to the UI
-    console.error('Cannot delete group with buckets')
+    console.error('Cannot delete category with budgets')
     return
   }
 
   const { error } = await supabase
-    .from('groups')
+    .from('categories')
     .delete()
-    .eq('id', groupId)
+    .eq('id', categoryId)
 
   if (error) {
-    console.error('Delete Group Error:', error)
+    console.error('Delete Category Error:', error)
     return
   }
 
@@ -150,11 +150,11 @@ export async function deleteGroup(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function updateGroupOrder(items: { id: string; sort_order: number }[]) {
+export async function updateCategoryOrder(items: { id: string; sort_order: number }[]) {
   const supabase = await createClient()
 
   for (const item of items) {
-    await supabase.from('groups').update({ sort_order: item.sort_order }).eq('id', item.id)
+    await supabase.from('categories').update({ sort_order: item.sort_order }).eq('id', item.id)
   }
 
   revalidatePath('/settings')
@@ -193,11 +193,11 @@ export async function updateAccountOrder(items: { id: string; sort_order: number
   revalidatePath('/dashboard')
 }
 
-export async function updateBucketOrder(items: { id: string; sort_order: number }[]) {
+export async function updateBudgetOrder(items: { id: string; sort_order: number }[]) {
   const supabase = await createClient()
 
   for (const item of items) {
-    await supabase.from('buckets').update({ sort_order: item.sort_order }).eq('id', item.id)
+    await supabase.from('budgets').update({ sort_order: item.sort_order }).eq('id', item.id)
   }
 
   revalidatePath('/settings')
@@ -244,23 +244,23 @@ export async function deleteAccount(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function archiveBucket(formData: FormData) {
+export async function archiveBudget(formData: FormData) {
   const supabase = await createClient()
-  const bucketId = formData.get('bucket_id') as string
+  const budgetId = formData.get('budget_id') as string
 
-  if (!bucketId) return
+  if (!budgetId) return
 
   // Check if TBB
-  const { data: bucket } = await supabase.from('buckets').select('name').eq('id', bucketId).single()
-  if (bucket?.name === 'To Be Budgeted') return
+  const { data: budget } = await supabase.from('budgets').select('name').eq('id', budgetId).single()
+  if (budget?.name === 'To Be Budgeted') return
 
   const { error } = await supabase
-    .from('buckets')
+    .from('budgets')
     .update({ is_archived: true })
-    .eq('id', bucketId)
+    .eq('id', budgetId)
 
   if (error) {
-    console.error('Archive Bucket Error:', error)
+    console.error('Archive Budget Error:', error)
     return
   }
 
@@ -268,23 +268,23 @@ export async function archiveBucket(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function unarchiveBucket(formData: FormData) {
+export async function unarchiveBudget(formData: FormData) {
   const supabase = await createClient()
-  const bucketId = formData.get('bucket_id') as string
+  const budgetId = formData.get('budget_id') as string
 
-  if (!bucketId) return
+  if (!budgetId) return
 
   // Check if TBB (though unarchiving TBB shouldn't happen if it can't be archived, adding for safety)
-  const { data: bucket } = await supabase.from('buckets').select('name').eq('id', bucketId).single()
-  if (bucket?.name === 'To Be Budgeted') return
+  const { data: budget } = await supabase.from('budgets').select('name').eq('id', budgetId).single()
+  if (budget?.name === 'To Be Budgeted') return
 
   const { error } = await supabase
-    .from('buckets')
+    .from('budgets')
     .update({ is_archived: false })
-    .eq('id', bucketId)
+    .eq('id', budgetId)
 
   if (error) {
-    console.error('Unarchive Bucket Error:', error)
+    console.error('Unarchive Budget Error:', error)
     return
   }
 
@@ -292,23 +292,23 @@ export async function unarchiveBucket(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function deleteBucket(formData: FormData) {
+export async function deleteBudget(formData: FormData) {
   const supabase = await createClient()
-  const bucketId = formData.get('bucket_id') as string
+  const budgetId = formData.get('budget_id') as string
 
-  if (!bucketId) return
+  if (!budgetId) return
 
   // Check if TBB
-  const { data: bucket } = await supabase.from('buckets').select('name').eq('id', bucketId).single()
-  if (bucket?.name === 'To Be Budgeted') return
+  const { data: budget } = await supabase.from('budgets').select('name').eq('id', budgetId).single()
+  if (budget?.name === 'To Be Budgeted') return
 
   const { error } = await supabase
-    .from('buckets')
+    .from('budgets')
     .delete()
-    .eq('id', bucketId)
+    .eq('id', budgetId)
   
   if (error) {
-    console.error('Delete Bucket Error:', error)
+    console.error('Delete Budget Error:', error)
     return
   }
 
@@ -316,36 +316,36 @@ export async function deleteBucket(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function createBucket(formData: FormData) {
+export async function createBudget(formData: FormData) {
   const supabase = await createClient()
   const name = formData.get('name') as string
-  const group_id = formData.get('group_id') as string
+  const category_id = formData.get('category_id') as string
   const target_str = formData.get('target_amount') as string
   
   const target_amount = target_str ? Math.round(parseFloat(target_str) * 100) : 0
 
-  if (!name || !group_id) return
+  if (!name || !category_id) return
 
   // Prevent creating "To Be Budgeted" manually
   if (name.trim().toLowerCase() === 'to be budgeted') {
     return
   }
 
-  // Prevent creating buckets in "System" group
-  const { data: group } = await supabase.from('groups').select('title').eq('id', group_id).single()
-  if (group?.title === 'System') {
+  // Prevent creating budgets in "System" category
+  const { data: category } = await supabase.from('categories').select('title').eq('id', category_id).single()
+  if (category?.title === 'System') {
     return
   }
 
-  const { error } = await supabase.from('buckets').insert({ 
+  const { error } = await supabase.from('budgets').insert({ 
     name, 
-    group_id, 
+    category_id, 
     target_amount,
     user_id: (await supabase.auth.getUser()).data.user?.id 
   })
 
   if (error) {
-    console.error('Create Bucket Error:', error)
+    console.error('Create Budget Error:', error)
     return
   }
 
@@ -353,20 +353,20 @@ export async function createBucket(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function updateBucketGroup(formData: FormData) {
+export async function updateBudgetCategory(formData: FormData) {
   const supabase = await createClient()
-  const bucket_id = formData.get('bucket_id') as string
-  const group_id = formData.get('group_id') as string
+  const budget_id = formData.get('budget_id') as string
+  const category_id = formData.get('category_id') as string
 
-  if (!bucket_id || !group_id) return
+  if (!budget_id || !category_id) return
 
   const { error } = await supabase
-    .from('buckets')
-    .update({ group_id })
-    .eq('id', bucket_id)
+    .from('budgets')
+    .update({ category_id })
+    .eq('id', budget_id)
 
   if (error) {
-    console.error('Update Bucket Group Error:', error)
+    console.error('Update Budget Category Error:', error)
     return
   }
 
@@ -374,22 +374,22 @@ export async function updateBucketGroup(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function updateBucketTarget(formData: FormData) {
+export async function updateBudgetTarget(formData: FormData) {
   const supabase = await createClient()
-  const bucketId = formData.get('bucket_id') as string
+  const budgetId = formData.get('budget_id') as string
   const targetStr = formData.get('target_amount') as string
 
-  if (!bucketId) return
+  if (!budgetId) return
 
   const target_amount = targetStr ? Math.round(parseFloat(targetStr) * 100) : 0
 
   const { error } = await supabase
-    .from('buckets')
+    .from('budgets')
     .update({ target_amount })
-    .eq('id', bucketId)
+    .eq('id', budgetId)
 
   if (error) {
-    console.error('Update Bucket Target Error:', error)
+    console.error('Update Budget Target Error:', error)
     return
   }
 
@@ -397,29 +397,29 @@ export async function updateBucketTarget(formData: FormData) {
   revalidatePath('/dashboard')
 }
 
-export async function updateBucket(formData: FormData) {
+export async function updateBudget(formData: FormData) {
   const supabase = await createClient()
-  const bucketId = formData.get('bucket_id') as string
+  const budgetId = formData.get('budget_id') as string
   const name = formData.get('name') as string
   const targetStr = formData.get('target_amount') as string
-  const groupId = formData.get('group_id') as string
+  const categoryId = formData.get('category_id') as string
 
-  if (!bucketId) return
+  if (!budgetId) return
 
   const updates: any = {}
   if (name) updates.name = name
   if (targetStr !== null && targetStr !== undefined) {
     updates.target_amount = targetStr ? Math.round(parseFloat(targetStr) * 100) : 0
   }
-  if (groupId) updates.group_id = groupId
+  if (categoryId) updates.category_id = categoryId
 
   const { error } = await supabase
-    .from('buckets')
+    .from('budgets')
     .update(updates)
-    .eq('id', bucketId)
+    .eq('id', budgetId)
 
   if (error) {
-    console.error('Update Bucket Error:', error)
+    console.error('Update Budget Error:', error)
     return
   }
 

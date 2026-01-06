@@ -1,6 +1,6 @@
 
 import { createClient } from '@/utils/supabase/server'
-import { getAccounts, getBuckets, getGroups } from '@/app/lib/api'
+import { getAccounts, getBudgets, getCategories } from '@/app/lib/api'
 import StandardTransactionForm from '@/app/components/transactions/StandardTransactionForm'
 import Link from 'next/link'
 import { redirect } from 'next/navigation'
@@ -13,22 +13,22 @@ export default async function NewTransactionPage() {
     redirect('/login')
   }
 
-  const [accounts, buckets, groups] = await Promise.all([
+  const [accounts, budgets, categories] = await Promise.all([
     getAccounts(),
-    getBuckets(),
-    getGroups()
+    getBudgets(),
+    getCategories()
   ])
 
-  // Create a map of group IDs to titles
-  const groupMap = new Map(groups.map(g => [g.id, g.title]))
+  // Create a map of category IDs to titles
+  const categoryMap = new Map(categories.map(c => [c.id, c.title]))
 
-  // Filter out archived items and add group_title
+  // Filter out archived items and add category_title
   const activeAccounts = accounts.filter(a => !a.is_archived)
-  const activeBuckets = buckets
+  const activeBudgets = budgets
     .filter(b => !b.is_archived)
     .map(b => ({
       ...b,
-      group_title: groupMap.get(b.group_id) || 'Uncategorized'
+      category_title: categoryMap.get(b.category_id) || 'Uncategorized'
     }))
 
   return (
@@ -45,7 +45,7 @@ export default async function NewTransactionPage() {
 
       <StandardTransactionForm 
         accounts={activeAccounts} 
-        buckets={activeBuckets} 
+        budgets={activeBudgets} 
       />
     </div>
   )

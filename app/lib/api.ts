@@ -8,10 +8,10 @@ export type AccountBalance = {
   sort_order?: number
 }
 
-export type BucketBalance = {
+export type BudgetBalance = {
   id: string
   name: string
-  group_id: string
+  category_id: string
   target_amount: number
   balance: number
   sort_order?: number
@@ -23,7 +23,7 @@ export type DashboardSummary = {
   unallocated_error_check: number
 }
 
-export type Group = {
+export type Category = {
   id: string
   title: string
   type?: 'need' | 'want' | 'savings' | null
@@ -36,11 +36,11 @@ export type Transaction = {
   date: string
   amount: number
   description: string | null
-  type: 'income' | 'expense' | 'transfer' | 'bucket_move'
+  type: 'income' | 'expense' | 'transfer' | 'budget_move'
   from_account_id: string | null
   to_account_id: string | null
-  from_bucket_id: string | null
-  to_bucket_id: string | null
+  from_budget_id: string | null
+  to_budget_id: string | null
 }
 
 export type Account = {
@@ -49,24 +49,26 @@ export type Account = {
   type: string
   is_archived: boolean
   sort_order?: number
+  created_at: string
 }
 
-export type Bucket = {
+export type Budget = {
   id: string
   name: string
-  group_id: string
+  category_id: string
   target_amount: number
   is_archived: boolean
   sort_order?: number
+  created_at: string
 }
 
 export type MonthlyStats = {
   total_income: number
   total_expenses: number
   net_savings: number
-  expenses_by_group: {
-    group_id: string
-    group_name: string
+  expenses_by_category: {
+    category_id: string
+    category_name: string
     amount: number
     type: 'need' | 'want' | 'savings' | 'uncategorized'
   }[]
@@ -116,21 +118,21 @@ export async function getMonthlyStats(year: number, month: number): Promise<Mont
     throw new Error(`Failed to fetch transactions: ${txError.message}`)
   }
 
-  // 2. Fetch all groups and buckets for categorization
-  const [groups, buckets] = await Promise.all([
-    getGroups(),
-    getBuckets()
+  // 2. Fetch all categories and budgets for categorization
+  const [categories, budgets] = await Promise.all([
+    getCategories(),
+    getBudgets()
   ])
 
   // Create lookups
-  const bucketGroupMap = new Map(buckets.map(b => [b.id, b.group_id]))
-  const groupNameMap = new Map(groups.map(g => [g.id, g.title]))
-  const groupTypeMap = new Map(groups.map(g => [g.id, g.type]))
+  const budgetCategoryMap = new Map(budgets.map(b => [b.id, b.category_id]))
+  const categoryNameMap = new Map(categories.map(c => [c.id, c.title]))
+  const categoryTypeMap = new Map(categories.map(c => [c.id, c.type]))
 
   // 3. Aggregate data
   let total_income = 0
   let total_expenses = 0
-  const expenses_by_group_map = new Map<string, number>()
+  const expenses_by_category_map = new Map<string, number>()
   const expenses_by_type_map = new Map<string, number>()
 
   transactions?.forEach(tx => {
@@ -139,21 +141,19 @@ export async function getMonthlyStats(year: number, month: number): Promise<Mont
     } else if (tx.type === 'expense') {
       total_expenses += tx.amount
       
-      // Categorize by group
-      if (tx.from_bucket_id) {
-        const groupId = bucketGroupMap.get(tx.from_bucket_id)
-        if (groupId) {
-          const current = expenses_by_group_map.get(groupId) || 0
-          expenses_by_group_map.set(groupId, current + tx.amount)
+      // Categorize by category
+      if (tx.from_budget_id) {
+        const categoryId = budgetCategoryMap.get(tx.from_budget_id)
+        if (categoryId) {
+          const current = expenses_by_category_map.get(categoryId) || 0
+          expenses_by_category_map.set(categoryId, current + tx.amount)
 
-          // Categorize by type
-          const type = groupTypeMap.get(groupId) || 'uncategorized'
+          const type = categoryTypeMap.get(categoryId) || 'uncategorized'
           const currentType = expenses_by_type_map.get(type) || 0
           expenses_by_type_map.set(type, currentType + tx.amount)
         } else {
-          // Uncategorized or System
-           const current = expenses_by_group_map.get('uncategorized') || 0
-           expenses_by_group_map.set('uncategorized', current + tx.amount)
+           const current = expenses_by_category_map.get('uncategorized') || 0
+           expenses_by_category_map.set('uncategorized', current + tx.amount)
 
            const currentType = expenses_by_type_map.get('uncategorized') || 0
            expenses_by_type_map.set('uncategorized', currentType + tx.amount)
@@ -162,21 +162,21 @@ export async function getMonthlyStats(year: number, month: number): Promise<Mont
     }
   })
 
-  // Format group breakdown
-  const expenses_by_group = Array.from(expenses_by_group_map.entries()).map(([groupId, amount]) => {
-    if (groupId === 'uncategorized') {
+  // Format category breakdown
+  const expenses_by_category = Array.from(expenses_by_category_map.entries()).map(([categoryId, amount]) => {
+    if (categoryId === 'uncategorized') {
       return { 
-        group_id: 'uncategorized', 
-        group_name: 'Uncategorized', 
+        category_id: 'uncategorized', 
+        category_name: 'Uncategorized', 
         amount,
         type: 'uncategorized' as const
       }
     }
     return {
-      group_id: groupId,
-      group_name: groupNameMap.get(groupId) || 'Unknown Group',
+      category_id: categoryId,
+      category_name: categoryNameMap.get(categoryId) || 'Unknown Category',
       amount,
-      type: (groupTypeMap.get(groupId) || 'uncategorized') as 'need' | 'want' | 'savings' | 'uncategorized'
+      type: (categoryTypeMap.get(categoryId) || 'uncategorized') as 'need' | 'want' | 'savings' | 'uncategorized'
     }
   }).sort((a, b) => b.amount - a.amount)
 
@@ -190,7 +190,7 @@ export async function getMonthlyStats(year: number, month: number): Promise<Mont
     total_income,
     total_expenses,
     net_savings: total_income - total_expenses,
-    expenses_by_group,
+    expenses_by_category,
     expenses_by_type
   }
 }
@@ -315,9 +315,9 @@ export async function getAccountBalances() {
 }
 
 /**
- * Fetch all bucket balances for the current user.
+ * Fetch all budget balances for the current user.
  */
-export async function getBucketBalances() {
+export async function getBudgetBalances() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   
@@ -325,63 +325,62 @@ export async function getBucketBalances() {
     return []
   }
 
-  // 1. Get IDs of buckets that belong to this user
-  const { data: userBuckets, error: bucketError } = await supabase
-    .from('buckets')
+  // 1. Get IDs of budgets that belong to this user
+  const { data: userBudgets, error: budgetError } = await supabase
+    .from('budgets')
     .select('id')
     .eq('user_id', user.id)
 
-  if (bucketError) {
-    throw new Error(`Failed to fetch user buckets: ${bucketError.message}`)
+  if (budgetError) {
+    throw new Error(`Failed to fetch user budgets: ${budgetError.message}`)
   }
 
-  const bucketIds = userBuckets.map(b => b.id)
+  const budgetIds = userBudgets.map(b => b.id)
 
-  if (bucketIds.length === 0) {
+  if (budgetIds.length === 0) {
     return []
   }
   
   // 2. Filter the view by these IDs
   const { data, error } = await supabase
-    .from('v_bucket_balances')
+    .from('v_budget_balances')
     .select('*')
-    .in('id', bucketIds)
+    .in('id', budgetIds)
     .order('sort_order')
     .order('name')
 
   if (error) {
-    throw new Error(`Failed to fetch bucket balances: ${error.message}`)
+    throw new Error(`Failed to fetch budget balances: ${error.message}`)
   }
 
-  // Deduplicate buckets by ID to prevent React key errors if the view returns duplicates
-  const uniqueBuckets = Array.from(new Map((data || []).map(b => [b.id, b])).values())
+  // Deduplicate budgets by ID to prevent React key errors if the view returns duplicates
+  const uniqueBudgets = Array.from(new Map((data || []).map(b => [b.id, b])).values())
 
-  return uniqueBuckets as BucketBalance[]
+  return uniqueBudgets as BudgetBalance[]
 }
 
 /**
- * Fetch groups to organize buckets.
+ * Fetch categories to organize budgets.
  */
-export async function getGroups() {
+export async function getCategories() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return []
   
   const { data, error } = await supabase
-    .from('groups')
+    .from('categories')
     .select('*')
     .eq('user_id', user.id)
     .order('sort_order')
 
   if (error) {
-    throw new Error(`Failed to fetch groups: ${error.message}`)
+    throw new Error(`Failed to fetch categories: ${error.message}`)
   }
 
-  // Deduplicate groups by ID
-  const uniqueGroups = Array.from(new Map((data || []).map(g => [g.id, g])).values())
+  const uniqueCategories = Array.from(new Map((data || []).map(c => [c.id, c])).values())
 
-  return uniqueGroups as Group[]
+  return uniqueCategories as Category[]
 }
 
 /**
@@ -429,15 +428,15 @@ export async function getAccounts() {
 }
 
 /**
- * Fetch all buckets (raw).
+ * Fetch all budgets (raw).
  */
-export async function getBuckets() {
+export async function getBudgets() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) return []
 
-  const { data, error } = await supabase.from('buckets').select('*').eq('user_id', user.id).order('sort_order').order('name')
-  if (error) throw new Error(`Failed to fetch buckets: ${error.message}`)
-  return data as Bucket[]
+  const { data, error } = await supabase.from('budgets').select('*').eq('user_id', user.id).order('sort_order').order('name')
+  if (error) throw new Error(`Failed to fetch budgets: ${error.message}`)
+  return data as Budget[]
 }

@@ -1,6 +1,6 @@
 import { z } from 'zod'
 
-export const transactionTypeSchema = z.enum(['income', 'expense', 'transfer', 'bucket_move'])
+export const transactionTypeSchema = z.enum(['income', 'expense', 'transfer', 'budget_move'])
 
 export type TransactionType = z.infer<typeof transactionTypeSchema>
 
@@ -13,13 +13,13 @@ const baseSchema = z.object({
 export const expenseSchema = baseSchema.extend({
   type: z.literal('expense'),
   from_account_id: z.string().uuid('Account is required'),
-  from_bucket_id: z.string().uuid('Bucket is required'),
+  from_budget_id: z.string().uuid('Budget is required'),
 })
 
 export const incomeSchema = baseSchema.extend({
   type: z.literal('income'),
   to_account_id: z.string().uuid('Account is required'),
-  to_bucket_id: z.string().uuid('Bucket is required'),
+  to_budget_id: z.string().uuid('Budget is required'),
 })
 
 export const transferSchema = baseSchema.extend({
@@ -31,20 +31,20 @@ export const transferSchema = baseSchema.extend({
   path: ["to_account_id"],
 })
 
-export const bucketMoveSchema = baseSchema.extend({
-  type: z.literal('bucket_move'),
-  from_bucket_id: z.string().uuid('Source bucket is required'),
-  to_bucket_id: z.string().uuid('Destination bucket is required'),
-}).refine((data) => data.from_bucket_id !== data.to_bucket_id, {
-  message: "Cannot move to the same bucket",
-  path: ["to_bucket_id"],
+export const budgetMoveSchema = baseSchema.extend({
+  type: z.literal('budget_move'),
+  from_budget_id: z.string().uuid('Source budget is required'),
+  to_budget_id: z.string().uuid('Destination budget is required'),
+}).refine((data) => data.from_budget_id !== data.to_budget_id, {
+  message: "Cannot move to the same budget",
+  path: ["to_budget_id"],
 })
 
 export const transactionSchema = z.discriminatedUnion('type', [
   expenseSchema,
   incomeSchema,
   transferSchema,
-  bucketMoveSchema,
+  budgetMoveSchema,
 ])
 
 export type TransactionFormData = z.infer<typeof transactionSchema>

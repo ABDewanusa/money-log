@@ -18,20 +18,20 @@ import {
   useSortable
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import { updateBucketOrder } from '@/app/actions/settings'
+import { updateBudgetOrder } from '@/app/actions/settings'
 import { formatMoney } from '@/utils/format/money'
-import { Group, Bucket } from '@/app/lib/api'
+import { Category, Budget } from '@/app/lib/api'
 
-function SortableBucketItem({ 
-  bucket, 
+function SortableBudgetItem({ 
+  budget, 
   groups,
   onDelete,
   onArchive,
   onUnarchive,
   onUpdate
 }: { 
-  bucket: Bucket
-  groups: Group[]
+  budget: Budget
+  groups: Category[]
   onDelete: (id: string) => void
   onArchive: (id: string) => void
   onUnarchive: (id: string) => void
@@ -44,7 +44,7 @@ function SortableBucketItem({
     transform,
     transition,
     isDragging
-  } = useSortable({ id: bucket.id })
+  } = useSortable({ id: budget.id })
 
   const [isEditing, setIsEditing] = useState(false)
 
@@ -65,10 +65,10 @@ function SortableBucketItem({
         
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className={`font-medium truncate ${bucket.is_archived ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
-              {bucket.name}
+            <span className={`font-medium truncate ${budget.is_archived ? 'text-gray-500 dark:text-gray-400 line-through' : 'text-gray-900 dark:text-gray-100'}`}>
+              {budget.name}
             </span>
-            {bucket.is_archived && (
+            {budget.is_archived && (
               <span className="text-xs bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-gray-400 px-2 py-0.5 rounded flex-shrink-0">Archived</span>
             )}
           </div>
@@ -81,7 +81,7 @@ function SortableBucketItem({
               }}
               className="mt-1 flex items-center gap-2 flex-wrap"
             >
-              <input type="hidden" name="bucket_id" value={bucket.id} />
+              <input type="hidden" name="budget_id" value={budget.id} />
               
               <div className="flex items-center gap-1">
                 <span className="text-xs text-gray-500">Target:</span>
@@ -89,7 +89,7 @@ function SortableBucketItem({
                   name="target_amount" 
                   type="number" 
                   step="0.01" 
-                  defaultValue={bucket.target_amount / 100}
+                  defaultValue={budget.target_amount / 100}
                   className="w-20 text-xs p-1 border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white"
                   autoFocus
                   onKeyDown={(e) => {
@@ -99,14 +99,14 @@ function SortableBucketItem({
               </div>
 
               <div className="flex items-center gap-1">
-                <span className="text-xs text-gray-500">Group:</span>
+                <span className="text-xs text-gray-500">Category:</span>
                 <select 
-                  name="group_id"
-                  defaultValue={bucket.group_id}
+                  name="category_id"
+                  defaultValue={budget.category_id}
                   className="text-xs p-1 border border-gray-300 dark:border-slate-600 rounded bg-white dark:bg-slate-900 text-gray-900 dark:text-white max-w-[120px]"
                 >
-                  {groups.map(g => (
-                    <option key={g.id} value={g.id}>{g.title}</option>
+                  {groups.map(c => (
+                    <option key={c.id} value={c.id}>{c.title}</option>
                   ))}
                 </select>
               </div>
@@ -117,9 +117,9 @@ function SortableBucketItem({
           ) : (
             <div className="flex items-center gap-2 mt-0.5 h-5">
                <div className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                 Target: {bucket.target_amount > 0 ? formatMoney(bucket.target_amount) : '$0.00'}
+                 Target: {budget.target_amount > 0 ? formatMoney(budget.target_amount) : '$0.00'}
                </div>
-               {!bucket.is_archived && (
+               {!budget.is_archived && (
                  <button 
                    onClick={() => setIsEditing(true)}
                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
@@ -133,10 +133,10 @@ function SortableBucketItem({
       </div>
 
       <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
-        {bucket.name !== 'To Be Budgeted' && (
+        {budget.name !== 'To Be Budgeted' && (
           <>
-            {!bucket.is_archived ? (
-              <form action={() => onArchive(bucket.id)}>
+            {!budget.is_archived ? (
+              <form action={() => onArchive(budget.id)}>
                 <button 
                   type="submit"
                   className="w-20 text-xs font-medium text-orange-700 dark:text-orange-400 hover:text-orange-900 dark:hover:text-orange-300 border border-orange-200 dark:border-orange-900 bg-orange-50 dark:bg-orange-900/30 hover:bg-orange-100 dark:hover:bg-orange-900/50 px-3 py-1.5 rounded transition-colors"
@@ -145,7 +145,7 @@ function SortableBucketItem({
                 </button>
               </form>
             ) : (
-              <form action={() => onUnarchive(bucket.id)}>
+              <form action={() => onUnarchive(budget.id)}>
                 <button 
                   type="submit"
                   className="w-20 text-xs font-medium text-blue-700 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300 border border-blue-200 dark:border-blue-900 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 px-3 py-1.5 rounded transition-colors"
@@ -154,7 +154,7 @@ function SortableBucketItem({
                 </button>
               </form>
             )}
-            <form action={() => onDelete(bucket.id)}>
+            <form action={() => onDelete(budget.id)}>
               <button 
                 type="submit"
                 className="w-20 flex-shrink-0 text-xs font-medium text-red-700 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300 border border-red-200 dark:border-red-900 bg-red-50 dark:bg-red-900/30 hover:bg-red-100 dark:hover:bg-red-900/50 px-3 py-1.5 rounded transition-colors"
@@ -169,8 +169,8 @@ function SortableBucketItem({
   )
 }
 
-export default function SortableBucketList({ 
-  buckets, 
+export default function SortableBudgetList({ 
+  budgets, 
   groups,
   onDelete,
   onArchive,
@@ -178,8 +178,8 @@ export default function SortableBucketList({
   onUpdate,
   id: propId
 }: { 
-  buckets: Bucket[] 
-  groups: Group[] 
+  budgets: Budget[] 
+  groups: Category[] 
   onDelete: (id: string) => void
   onArchive: (id: string) => void
   onUnarchive: (id: string) => void
@@ -188,11 +188,11 @@ export default function SortableBucketList({
 }) {
   const generatedId = useId()
   const dndId = propId || generatedId
-  const [items, setItems] = useState(buckets)
+  const [items, setItems] = useState(budgets)
 
   useEffect(() => {
-    setItems(buckets.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)))
-  }, [buckets])
+    setItems(budgets.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)))
+  }, [budgets])
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -217,7 +217,7 @@ export default function SortableBucketList({
           sort_order: index
         }))
         
-        updateBucketOrder(updates)
+        updateBudgetOrder(updates)
         
         return newItems
       })
@@ -236,10 +236,10 @@ export default function SortableBucketList({
         strategy={verticalListSortingStrategy}
       >
         <div className="divide-y divide-gray-200 dark:divide-slate-700 border border-gray-200 dark:border-slate-700 rounded-lg overflow-hidden">
-          {items.map(bucket => (
-            <SortableBucketItem 
-              key={bucket.id} 
-              bucket={bucket} 
+          {items.map(budget => (
+            <SortableBudgetItem 
+              key={budget.id} 
+              budget={budget} 
               groups={groups} 
               onDelete={onDelete}
               onArchive={onArchive}

@@ -136,8 +136,8 @@ export default async function ReportsPage(props: {
                 uncategorized: 'bg-gray-400'
               }
 
-              // Filter groups for this type
-              const typeGroups = monthlyStats.expenses_by_group.filter(g => g.type === typeItem.type)
+              // Filter categories for this type
+              const typeGroups = monthlyStats.expenses_by_category.filter(g => g.type === typeItem.type)
 
               return (
                 <div key={typeItem.type} className="space-y-3">
@@ -168,9 +168,9 @@ export default async function ReportsPage(props: {
                           : 0
                         
                         return (
-                          <div key={group.group_id}>
+                          <div key={group.category_id}>
                             <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
-                              <span>{group.group_name}</span>
+                              <span>{group.category_name}</span>
                               <span>{formatMoney(group.amount)} ({groupPercentage.toFixed(1)}%)</span>
                             </div>
                             {/* Optional: mini bar for group */}

@@ -33,19 +33,19 @@ export async function logTransaction(data: TransactionFormData) {
   switch (type) {
     case 'expense':
       payload.from_account_id = result.data.from_account_id
-      payload.from_bucket_id = result.data.from_bucket_id
+      payload.from_budget_id = result.data.from_budget_id
       break
     case 'income':
       payload.to_account_id = result.data.to_account_id
-      payload.to_bucket_id = result.data.to_bucket_id
+      payload.to_budget_id = result.data.to_budget_id
       break
     case 'transfer':
       payload.from_account_id = result.data.from_account_id
       payload.to_account_id = result.data.to_account_id
       break
-    case 'bucket_move':
-      payload.from_bucket_id = result.data.from_bucket_id
-      payload.to_bucket_id = result.data.to_bucket_id
+    case 'budget_move':
+      payload.from_budget_id = result.data.from_budget_id
+      payload.to_budget_id = result.data.to_budget_id
       break
   }
 
